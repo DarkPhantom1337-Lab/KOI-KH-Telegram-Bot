@@ -18,8 +18,11 @@
                 </configuration>
             </plugin>
         </plugins>
+
     </build>
+
     <dependencies>
+
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
@@ -35,17 +38,31 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.20</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-sheets -->
         <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-            <version>3.3.0</version>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>v4-rev1-1.21.0</version>
         </dependency>
         <dependency>
-            <groupId>com.google.zxing</groupId>
+            <groupId>com.google.gdata</groupId>
             <artifactId>core</artifactId>
-            <version>3.4.0</version>
+            <version>1.47.1</version>
         </dependency>
+
     </dependencies>
-
-
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>google-api-services</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+        <repository>
+            <id>google-api-services-beta</id>
+            <url>http://google-api-client-libraries.appspot.com/mavenrepo</url>
+        </repository>
+    </repositories>
 </project>
