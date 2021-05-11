@@ -13,17 +13,17 @@ public class Handlers {
     public Boolean handleManagersCommands(Message msg, String text){
         long id = msg.getChatId();
        if (text.equals("Перейти в меню пользователя")) {
-           bot.sendMsg(msg, "Вы перешли в главное меню пользователя!", "MainPersonalMenu");
+           bot.sendMsgToUser(msg.getChatId(), "Вы перешли в главное меню пользователя!", "MainPersonalMenu");
            return true;
        }
        if (text.equals("Вернуться в меню управления")) {
            String vc = DataBase.getPerFields(id, "v_id");
-           bot.sendMsg(msg, "Вы вернулись в меню управления", vc.equals("manager") ? "MainManagerMenu" :
+           bot.sendMsgToUser(msg.getChatId(), "Вы вернулись в меню управления", vc.equals("manager") ? "MainManagerMenu" :
                    vc.equals("admin") ? "MainAdminMenu" : vc.equals("owner") ? "MainAdminMenu" : "main");
            return true;
        }
        if (text.equals("Информация о заявке(ах)")) {
-           bot.sendMsg(msg, "Чтобы посмотреть информацию о заявках: "
+           bot.sendMsgToUser(msg.getChatId(), "Чтобы посмотреть информацию о заявках: "
                    + "\n -> /info <znum> - посмотреть информацию про заявку №<znum>"
                    + "\n -> Пример: /info 156 - покажет информацию про заявку №156", "MainManagerMenu");
            return true;
@@ -37,7 +37,7 @@ public class Handlers {
     public Boolean handleAdminCommands(Message msg, String text){
         long id = msg.getChatId();
         if (text.equals("Управление рассылками")) {
-            bot.sendMsg(msg, "Вы открыли меню управления рассылками", "ras");
+            bot.sendMsgToUser(msg.getChatId(), "Вы открыли меню управления рассылками", "ras");
             return true;
         }
         return false;
@@ -46,15 +46,15 @@ public class Handlers {
     public Boolean handleOwnerCommands(Message msg, String text){
         long id = msg.getChatId();
         if (text.equals("Управление персоналом")) {
-            bot.sendMsg(msg, "Команды управления персоналом: "
+            bot.sendMsgToUser(msg.getChatId(), "Команды управления персоналом: "
                     + "\n -> /add <phone> <name> <v_id> - добавление персонала"
                     + "\n -> /rem <phone> <name> <v_id> - удаление персонала"
-                    + "\n -> Пример: /add 380666905956 DarkPhantom1337 admin"
+                    + "\n -> Пример: /add 380666905956 DarkPhantom1337 develop"
                     + "\n -> Доступные вакансии: admin, manager", "MainAdminMenu");
             return true;
         }
         if (text.equals("Статистики")) {
-            bot.sendMsg(msg, "Статистики: "
+            bot.sendMsgToUser(msg.getChatId(), "Статистики: "
                     + "\n -> Пока что статистики недоступны!", "MainAdminMenu");
             return true;
         }

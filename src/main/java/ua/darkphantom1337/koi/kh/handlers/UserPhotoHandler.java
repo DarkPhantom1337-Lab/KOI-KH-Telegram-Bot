@@ -22,7 +22,7 @@ public class UserPhotoHandler {
                         bot.user_model.put(user.getID(), cartridge.getModel());
                         user.setUserLastAdress(user.getUserAdres());
                         user.setUserAdress(cartridge.getAddress());
-                        bot.sendMsg(user.getID().intValue(), "Проверьте правильность ввода: "
+                        user.sendMessage("Проверьте правильность ввода: "
                                 + "\nВаш адрес: " + cartridge.getAddress()
                                 + "\nВаша модель/дефект: " + cartridge.getModel(), "prov_info");
                     } else

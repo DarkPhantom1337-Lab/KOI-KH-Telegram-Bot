@@ -9,6 +9,7 @@ import org.telegram.telegrambots.api.methods.send.SendVideo;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.*;
+import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.Cartridge;
 import ua.darkphantom1337.koi.kh.entitys.Corporation;
@@ -330,6 +331,8 @@ public class AdminHandler {
                         if (!isqr) {
                             bot.user_tema.put(ownerid, "Заправка картриджа");
                             bot.user_model.put(ownerid, data[2]);
+                            for (String s: data[2].split(";"))
+                            UsersData.addSelectedOrderModel(ownerid, s);
                             bot.saveZayav(new User(new TidToUidTable(ownerid, false).getTelegramID()), null, null);
                             bot.sendMsgToUser(user.getTID(), "Заявка создана!", employee + "/MainMenu");
                             return true;
@@ -340,6 +343,7 @@ public class AdminHandler {
                             if (userO.getCartridgesID().contains(cartridgeID)) {
                                 DataBase.setUsFields(ownerid, "lastReadedCartridge", cartridgeID.intValue());
                                 bot.user_tema.put(ownerid, "Заправка картриджа");
+                                UsersData.addSelectedOrderModel(ownerid, cartridge.getModel());
                                 bot.user_model.put(ownerid, cartridge.getModel());
                                 user.setUserLastAdress(user.getUserAdres());
                                 user.setUserAdress(cartridge.getAddress());
@@ -391,11 +395,11 @@ public class AdminHandler {
                         if (data[1].equals("ALLOW")) {
                             usersID.add(ownerid);
                             DataBase.setUFields(20, "val1", bot.u.longToString(usersID, ";"));
-                            bot.sendMsgToUser(user_id, DataBase.getPerFields(ownerid, "name") + " теперь может согласовывать!", employee + "/MainMenu");
+                            bot.sendMsgToUser(user.getTID(), DataBase.getPerFields(ownerid, "name") + " теперь может согласовывать!", employee + "/MainMenu");
                         } else {
                             usersID.remove(ownerid);
                             DataBase.setUFields(20, "val1", bot.u.longToString(usersID, ";"));
-                            bot.sendMsgToUser(user_id, DataBase.getPerFields(ownerid, "name") + " теперь НЕ может согласовывать!", employee + "/MainMenu");
+                            bot.sendMsgToUser(user.getTID(), DataBase.getPerFields(ownerid, "name") + " теперь НЕ может согласовывать!", employee + "/MainMenu");
                         }
                         return true;
                     } catch (Exception e) {
@@ -775,16 +779,16 @@ public class AdminHandler {
         if (data.contains("#SEND_TO_")) {
             String where = data.split("_")[2];
             if (where.equals("VIBER")) {
-                bot.editMsg(chatid, msgid, bot.getWhatMessengerV());
+                bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerV());
             } else {
                 if (where.equals("TELEGRAM")) {
-                    bot.editMsg(chatid, msgid, bot.getWhatMessengerT());
+                    bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerT());
                 } else {
-                    bot.editMsg(chatid, msgid, bot.getWhatMessengerAll());
+                    bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerAll());
                 }
             }
             adm_where.put(fromid, where);
-            bot.sendMsg(chatid.toString(), "Отправка будет происходить в мессенджер: " + where + "\nВыберите по каким критериям будет происходить отправка:", bot.getAMenuButtons());
+            bot.sendMsg(chatid.toString(), "Отправка будет происходить в мессенджер: " + where + "\nВыберите по каким критериям будет происходить отправка:", InlineButtons.getAMenuButtons());
             return true;
         }
         if (data.contains("#ADM_SEND_")) {
@@ -861,7 +865,7 @@ public class AdminHandler {
                     }
                 } else DataBase.inserToNewsLetter(nv, fname, msg.getCaption(), "", "", "START");
                 System.out.println(bot.prefix() + "Document " + fname + " saved.");
-                bot.sendMsg(msg, "[" + adm_where.get(fromid) + "] [" + adm_rtype.get(fromid) + "] -> Документ успешно сохранён, выберите дату отправки: ", "send_napom=" + nv + "=" + adm_rtype.get(fromid));
+                bot.sendMsgToUser(msg.getChatId(), "[" + adm_where.get(fromid) + "] [" + adm_rtype.get(fromid) + "] -> Документ успешно сохранён, выберите дату отправки: ", "send_napom=" + nv + "=" + adm_rtype.get(fromid));
                 DataBase.setUFields(4, "val", (++nv));
                 return;
             }

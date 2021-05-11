@@ -3,6 +3,7 @@ package ua.darkphantom1337.koi.kh.handlers;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.DataBase;
+import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.entitys.Order;
 import ua.darkphantom1337.koi.kh.entitys.User;
 
@@ -33,7 +34,7 @@ public class UserCallbackHandler {
                     DataBase.setUsFields(user.getUID(), "type", "Частное лицо");
                     bot.tryExecureMethod(new AnswerCallbackQuery().setText("Спасибо :-) Теперь вы можете оставить заявку").setCallbackQueryId(callbackID));
                     bot.user_wait_adress.put(user.getUID(), true);
-                    bot.sendMsg(user.getTID().intValue(), DataBase.getUserName(Math.toIntExact(user.getUID())) + ", укажите пожалуйста адрес для выезда курьера за заявкой. ", "adress");
+                    user.sendMessage(user.getUserName() + ", укажите пожалуйста адрес для выезда курьера за заявкой. ", "adress");
                 } else
                     bot.tryExecureMethod(new AnswerCallbackQuery().setText("Вы уже выбрали ответ :-)").setCallbackQueryId(callbackID));
                 return true;
@@ -65,7 +66,7 @@ public class UserCallbackHandler {
             Order order = new Order(data.split("/")[1]);
             if (!order.getDescriptions().contains("REKLAMACIYA_USE")) {
                 user.setUserAction("user_wait_reklam_comm/" + order.getOrderID());
-                bot.editMsg(user.getTID(), msgID, bot.getButText("Опишите дефект/поломку"));
+                bot.editMsg(user.getTID(), msgID, InlineButtons.getButText("Опишите дефект/поломку"));
                 user.sendMessage("Опишите дефект/поломку как можно более точнее и отправьте мне.", "backtomain");
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callbackID).setText("Опишите дефект/поломку"));
                 return true;
@@ -81,7 +82,7 @@ public class UserCallbackHandler {
             Order order = new Order(data.split("/")[1]);
             if (!order.getDescriptions().contains("CANCEL_USE")) {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callbackID).setText("Заявка на отмену заявки подана"));
-                bot.editMsg(user.getTID(), msgID, bot.getButText("Заявка на отмену заявки отправлена"));
+                bot.editMsg(user.getTID(), msgID, InlineButtons.getButText("Заявка на отмену заявки отправлена"));
                 order.addDescriptions("CANCEL_USE");
                 bot.sendCancelZayav(order.getOrderID());
             } else {

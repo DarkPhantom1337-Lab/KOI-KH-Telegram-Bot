@@ -108,7 +108,7 @@ public class ManagerHandler {
             bot.sendMsgToUser(user.getTID(), "Вы перешли в меню менеджера \uD83D\uDE0E", "Manager/MainMenu");
             return true;
         }
-        if (text.equals("Текущие заявки")) {
+        if (text.equals("Текущие заявки (M)")) {
             bot.sendMsgToUser(user.getTID(), "Текущие заявки (не завершённые) \uD83D\uDC47", "Manager/CurrentOrders");
             return true;
         }
@@ -130,7 +130,7 @@ public class ManagerHandler {
                 bot.sendMsgToUser(user.getTID(), "Данные по выбранной заявки не актуальны, повторите попытку.", "Manager/MainMenu");
                 return true;
             }
-            bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";","/"), "Telegram", "SOGLASOVANO");
+            bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";", "/"), "Telegram", "SOGLASOVANO");
             bot.updateZStatus(selected_z.get(user_id), "Восстановление согласовано", "Вы подтвердили восстановления картриджа через телефон/месседжер.");
             bot.sendMsgToUser(user.getTID(), "Согласование по заявке " + selected_z.get(user_id) + " подтверждено принудительно \uD83D\uDC47", "");
             return true;
@@ -140,7 +140,7 @@ public class ManagerHandler {
                 bot.sendMsgToUser(user.getTID(), "Данные по выбранной заявки не актуальны, повторите попытку.", "Manager/MainMenu");
                 return true;
             }
-            bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";","/"), "Telegram", "CANCEL");
+            bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";", "/"), "Telegram", "CANCEL");
             bot.updateZStatus(selected_z.get(user_id), "Отказ от восстановления", "Вы отказались от восстановления картриджа через телефон/месседжер.");
             bot.sendMsgToUser(user.getTID(), "Согласование по заявке " + selected_z.get(user_id) + " ОТКАЗАНО принудительно \uD83D\uDC47", "");
             return true;
@@ -249,7 +249,7 @@ public class ManagerHandler {
             addSendedMsgID(user.getUID(), (long) bot.sendMsgToUser(user.getTID(), "Выше представлены заявки которые находяться у курьера '" + courier.getUser().getUserName() + "'. Выберите их и выполните любое действие ниже \uD83D\uDC47", "Manager/Routes/MultiFunctionMenu"));
             return true;
         }
-        if (text.equals("Чер-ик №1")) {
+        if (text.equals("Ч1")) {
             deleteAllSendedMsg(user);
             if (sendOrderMessages(user, OrderLocations.getOrdersInFirstDraft(), false)) {
                 bot.sendMsgToUser(user.getTID(), "Заявок в первом черновике ещё нету \uD83E\uDD2A", "Manager/Routes/Main");
@@ -260,7 +260,7 @@ public class ManagerHandler {
             addSendedMsgID(user.getUID(), (long) bot.sendMsgToUser(user.getTID(), "Выше представлены заявки которые находяться в первом черновике. Выберите их и выполните любое действие ниже \uD83D\uDC47", "Manager/Routes/MultiFunctionMenu"));
             return true;
         }
-        if (text.equals("Чер-ик №2")) {
+        if (text.equals("Ч2")) {
             deleteAllSendedMsg(user);
             if (sendOrderMessages(user, OrderLocations.getOrdersInSecondDraft(), false)) {
                 bot.sendMsgToUser(user.getTID(), "Заявок во втором черновике ещё нету \uD83E\uDD2A", "Manager/Routes/Main");
@@ -271,7 +271,7 @@ public class ManagerHandler {
             addSendedMsgID(user.getUID(), (long) bot.sendMsgToUser(user.getTID(), "Выше представлены заявки которые находяться во втором черновике. Выберите их и выполните любое действие ниже \uD83D\uDC47", "Manager/Routes/MultiFunctionMenu"));
             return true;
         }
-        if (text.equals("Чер-ик №3")) {
+        if (text.equals("Ч3")) {
             deleteAllSendedMsg(user);
             if (sendOrderMessages(user, OrderLocations.getOrdersInThirdDraft(), false)) {
                 bot.sendMsgToUser(user.getTID(), "Заявок в третьем черновике ещё нету \uD83E\uDD2A", "Manager/Routes/Main");
@@ -302,9 +302,9 @@ public class ManagerHandler {
         String text = "Заявка №" + order.getOrderID() + " | К-р: " + order.getCourierName()
                 + "\nСтатус: " + order.getAccurateStatus();
         List<Long> tasksID = order.getAllTasksID();
-        if (!tasksID.isEmpty()){
+        if (!tasksID.isEmpty()) {
             text += "\nОтметки курьеров: ";
-            for (Long taskID : tasksID){
+            for (Long taskID : tasksID) {
                 Task task = new Task(taskID);
                 text += "\n\uD83D\uDC49 " + getTextTaskType(task.getTaskType()) + " " + task.getCourier().getUser().getUserName() + " - " + task.getTaskStatus();
             }
@@ -318,7 +318,7 @@ public class ManagerHandler {
         return text;
     }
 
-    public String getTextTaskType(TaskType type){
+    public String getTextTaskType(TaskType type) {
         if (type == null)
             return "Не определено";
         if (type.equals(TaskType.COLLECT))
@@ -356,7 +356,7 @@ public class ManagerHandler {
                         + (DataBase.isPersonal(Long.parseLong(new Order(nza).getString("u_id"))) ? "\nПодал: " + DataBase.getPerFields(Long.parseLong(new Order(nza).getString("u_id")), "name") : "")
                         + "\nСтатус: /" + (status.equals("Поступила") ? status + "/" + " #Поступила" : "Принята - " + new Order(nza).getString("prinyal") + "/ #Принята - " + new Order(nza).getString("prinyal"));
                 bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), z_text);
-                bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), status.equals("Поступила") ? bot.getObrobotkaButton((long) nza) : bot.getObrobotkaTrueButton(nza));
+                bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), status.equals("Поступила") ? InlineButtons.getObrobotkaButton((long) nza) : InlineButtons.getObrobotkaTrueButton(nza));
                 bot.sendMsgToUser(user.getTID(), "✅ Редактирование модели по заявке №" + selected_z.get(user_id) + " успешно завершено!"
                         + "\n" + lastadr + " -> " + text, "Manager/ZMenu/" + selected_z.get(user_id));
             } catch (Exception e) {
@@ -383,7 +383,7 @@ public class ManagerHandler {
                         + (DataBase.isPersonal(Long.parseLong(new Order(nza).getString("u_id"))) ? "\nПодал: " + DataBase.getPerFields(Long.parseLong(new Order(nza).getString("u_id")), "name") : "")
                         + "\nСтатус: /" + (status.equals("Поступила") ? status + "/" + " #Поступила" : "Принята - " + new Order(nza).getString("prinyal") + "/ #Принята - " + new Order(nza).getString("prinyal"));
                 bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), z_text);
-                bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), status.equals("Поступила") ? bot.getObrobotkaButton((long) nza) : bot.getObrobotkaTrueButton(nza));
+                bot.editMsg(Long.parseLong(bot.getZayavChannelID()), bot.pi(new Order(nza).getString("main_msg_id")), status.equals("Поступила") ? InlineButtons.getObrobotkaButton((long) nza) : InlineButtons.getObrobotkaTrueButton(nza));
 
                 bot.sendMsgToUser(user.getTID(), "✅ Редактирование адреса по заявке №" + selected_z.get(user_id) + " успешно завершено!"
                         + "\n" + lastadr + " -> " + text, "Manager/ZMenu/" + selected_z.get(user_id));
@@ -423,9 +423,9 @@ public class ManagerHandler {
             }
             if (submenu.equals("MultiFunctional")) {
                 String ssubmenu = data.split("/")[3];
-                if (ssubmenu.equals("ConfirmAction")){
+                if (ssubmenu.equals("ConfirmAction")) {
                     bot.deleteMsg(user.getTID(), msgid);
-                    if (!selected_action.containsKey(user.getUID())){
+                    if (!selected_action.containsKey(user.getUID())) {
                         user.sendMessage("Данные о выбранном действии больше недоступны. Повторите процедуру заново.", "Manager/Routes/Main");
                         bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные больше не актуальны!"));
                         return true;
@@ -436,7 +436,118 @@ public class ManagerHandler {
                         return true;
                     }
                     String action = selected_action.get(user.getUID());
-                    if (action.startsWith("SendOrderToCourier")){
+                    if (action.equals("EndOrders")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            Bot.bot.pch.handleEndZayavAndVosst(user, "#ENDZAYAV/" + order.getOrderID(), 0, "", "");
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявки " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " были завершены.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("Collect")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            Bot.bot.pch.handleChangeZStatus(user, "#ChangeZStatus/Сбор_в_пути/" + order.getOrderID(), 0, "", "");
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " был назначем статус 'СБОР'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("Delivery")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            Bot.bot.pch.handleChangeZStatus(user, "#ChangeZStatus/Доставка_в_пути/" + order.getOrderID(), 0, "", "");
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " был назначем статус 'ДОСТАВКА'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("ToWork")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            Bot.bot.pch.handleChangeZStatus(user, "#ChangeZStatus/Заявка_в_работе/" + order.getOrderID(), 0, "", "");
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " был назначем статус 'В РАБОТЕ'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("Departure")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            String accStatus = order.getAccurateStatus();
+                            if (accStatus.equals("Принята") || accStatus.equals("Ожидает сбор")) {
+                                OrderLocations.removeOrderFromAll(selectedOrder);
+                                Bot.bot.pch.handleChangeZStatus(user, "#ChangeZStatus/Сбор_в_пути/" + order.getOrderID(), 0, "", "");
+                            } else {
+                                if (accStatus.equals("В работе") || accStatus.equals("Ожидает доставку") || accStatus.equals("Готова к выезду")) {
+                                    OrderLocations.removeOrderFromAll(selectedOrder);
+                                    Bot.bot.pch.handleChangeZStatus(user, "#ChangeZStatus/Доставка_в_пути/" + order.getOrderID(), 0, "", "");
+                                }
+                            }
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " было выполнено действие 'ВЫЕЗД'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("ToOffice")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            String accStatus = order.getAccurateStatus();
+                            if (accStatus.equals("Сбор")) {
+                                OrderLocations.removeOrderFromAll(selectedOrder);
+                                OrderLocations.addOrderInOffice(selectedOrder);
+                                order.setAccurateStatus("Ожидает сбор");
+                            } else {
+                                if (accStatus.equals("Доставка")) {
+                                    OrderLocations.removeOrderFromAll(selectedOrder);
+                                    OrderLocations.addOrderInOffice(selectedOrder);
+                                    order.setAccurateStatus("Ожидает доставку");
+                                }
+                            }
+                            bot.updateMainOrderMessage(selectedOrder);
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " было выполнено действие 'ВЕРНУТЬ В ОФИС'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("WaitCollect")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            order.setAccurateStatus("Ожидает сбор");
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            OrderLocations.addOrderInOffice(selectedOrder);
+                            bot.updateMainOrderMessage(selectedOrder);
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " был назначен статус 'ОЖИДАЕТ СБОР'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.equals("WaitDelivery")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            order.setAccurateStatus("Ожидает доставку");
+                            OrderLocations.removeOrderFromAll(selectedOrder);
+                            OrderLocations.addOrderInOffice(selectedOrder);
+                            bot.updateMainOrderMessage(selectedOrder);
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Заявкам " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " был назначен статус 'ОЖИДАЕТ ДОСТАВКУ'.", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
+                    if (action.startsWith("SendOrderToCourier")) {
                         Long courierID = Long.parseLong(action.split("%")[1]);
                         for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
                             Task task = new Task(DataBase.getNextTaskID());
@@ -452,8 +563,7 @@ public class ManagerHandler {
                             if (isDelivery(new Order(selectedOrder).getAllStatuses())) {
                                 OrderLocations.addOrdersInDelivery(selectedOrder);
                                 task.setTaskType(TaskType.DELIVERY);
-                            }
-                            else if (isCollect(new Order(selectedOrder).getAllStatuses())) {
+                            } else if (isCollect(new Order(selectedOrder).getAllStatuses())) {
                                 OrderLocations.addOrdersInCollection(selectedOrder);
                                 task.setTaskType(TaskType.COLLECT);
                             }
@@ -464,7 +574,7 @@ public class ManagerHandler {
                         removeAllSelectedOrders(user.getUID());
                         return true;
                     }
-                    if (action.startsWith("SendOrderToDraft")){
+                    if (action.startsWith("SendOrderToDraft")) {
                         Integer draftNumber = Integer.parseInt(action.split("%")[1]);
                         if (getAllSelectedOrders(user.getUID()).isEmpty()) {
                             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
@@ -484,7 +594,7 @@ public class ManagerHandler {
                         removeAllSelectedOrders(user.getUID());
                         return true;
                     }
-                    if (action.equals("BackStatus")){
+                    if (action.equals("BackStatus")) {
                         if (getAllSelectedOrders(user.getUID()).isEmpty()) {
                             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
                             return true;
@@ -496,24 +606,24 @@ public class ManagerHandler {
                                 order.setAccurateStatus("Подана");
                             if (order.getAccurateStatus().equals("Сбор"))
                                 order.setAccurateStatus("Принята");
-                            if (order.getAccurateStatus().equals("Доставка")){
+                            if (order.getAccurateStatus().equals("Доставка")) {
                                 OrderLocations.addOrderInOffice(selectedOrder);
                                 OrderLocations.addReadyToWay(selectedOrder);
                                 order.setAccurateStatus("Готова к выезду");
                             }
-                            if (order.getAccurateStatus().equals("В работе")){
+                            if (order.getAccurateStatus().equals("В работе")) {
                                 OrderLocations.addOrderInOffice(selectedOrder);
                                 order.setAccurateStatus("В офисе");
                             }
-                            if (order.getAccurateStatus().equals("Готова к выезду")){
+                            if (order.getAccurateStatus().equals("Готова к выезду")) {
                                 OrderLocations.addOrderInOffice(selectedOrder);
                                 order.setAccurateStatus("В офисе");
                             }
                             List<String> all_statuses = order.getAllStatuses();
-                            all_statuses.remove(all_statuses.size()-1);
+                            all_statuses.remove(all_statuses.size() - 1);
                             order.setAllStatuses(all_statuses);
-                            bot.editMsg(Long.parseLong(bot.getZayavChannelID()), order.getMainMsgID(), bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
-                            bot.updateZStatus(order.getOrderID().intValue(), all_statuses.get(all_statuses.size()-1).replaceAll("[0-9/:]",""), "");
+                            bot.editMsg(Long.parseLong(bot.getZayavChannelID()), order.getMainMsgID(), InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
+                            bot.updateZStatus(order.getOrderID().intValue(), all_statuses.get(all_statuses.size() - 1).replaceAll("[0-9/:]", ""), "");
                         }
                         deleteAllSendedMsg(user);
                         user.sendMessage("Заявки " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " были обновлены. Возвращён прошлый статус..", "Manager/Routes/Main");
@@ -521,61 +631,61 @@ public class ManagerHandler {
                         return true;
                     }
                 }
-                if (ssubmenu.equals("CancelAction")){
+                if (ssubmenu.equals("CancelAction")) {
                     bot.deleteMsg(user.getTID(), msgid);
-                    if (!selected_action.containsKey(user.getUID())){
+                    if (!selected_action.containsKey(user.getUID())) {
                         user.sendMessage("Данные о выбранном действии больше недоступны. Повторите процедуру заново.", "Manager/Routes/Main");
                         bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные больше не актуальны!"));
                         return true;
                     }
-                    if (!selected_category.containsKey(user.getUID())){
+                    if (!selected_category.containsKey(user.getUID())) {
                         user.sendMessage("Данные о выбранной категории больше недоступны. Повторите процедуру заново.", "Manager/Routes/Main");
                         bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные больше не актуальны!"));
                         return true;
                     }
                     String category = selected_category.get(user.getUID());
                     removeAllSelectedOrders(user.getUID());
-                    if (category.equals("AllOrders")){
+                    if (category.equals("AllOrders")) {
                         handleTextMessage(user, "Все заявки", 0);
                         return true;
                     }
-                    if (category.equals("InTheWay")){
+                    if (category.equals("InTheWay")) {
                         handleTextMessage(user, "В пути", 0);
                         return true;
                     }
-                    if (category.equals("InTheOffice")){
+                    if (category.equals("InTheOffice")) {
                         handleTextMessage(user, "В офисе", 0);
                         return true;
                     }
-                    if (category.equals("InTheWork")){
+                    if (category.equals("InTheWork")) {
                         handleTextMessage(user, "В работе", 0);
                         return true;
                     }
-                    if (category.equals("ReadyToWay")){
+                    if (category.equals("ReadyToWay")) {
                         handleTextMessage(user, "Выезд", 0);
                         return true;
                     }
-                    if (category.equals("Collection")){
+                    if (category.equals("Collection")) {
                         handleTextMessage(user, "Сбор", 0);
                         return true;
                     }
-                    if (category.equals("Delivery")){
+                    if (category.equals("Delivery")) {
                         handleTextMessage(user, "Доставка", 0);
                         return true;
                     }
-                    if (category.startsWith("InTheCourier")){
+                    if (category.startsWith("InTheCourier")) {
                         handleTextMessage(user, "|" + category.split("\\|")[1] + "|КрName", 0);
                         return true;
                     }
-                    if (category.equals("InTheFirstDraft")){
+                    if (category.equals("InTheFirstDraft")) {
                         handleTextMessage(user, "Чер-ик №1", 0);
                         return true;
                     }
-                    if (category.equals("InTheSecondDraft")){
+                    if (category.equals("InTheSecondDraft")) {
                         handleTextMessage(user, "Чер-ик №2", 0);
                         return true;
                     }
-                    if (category.equals("InTheThirdDraft")){
+                    if (category.equals("InTheThirdDraft")) {
                         handleTextMessage(user, "Чер-ик №3", 0);
                         return true;
                     }
@@ -588,7 +698,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "SendOrderToCourier%" + courierID);
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить заявки '" +bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' курьеру " + new Courier(courierID).getUser().getUserName() + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' курьеру " + new Courier(courierID).getUser().getUserName() + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("SendOrderToDraft")) {
@@ -610,6 +720,86 @@ public class ManagerHandler {
                     selected_action.put(user.getUID(), "BackStatus");
                     deleteAllSendedMsg(user);
                     user.sendMessage("Вы хотите вернуть статус заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("EndOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "EndOrders");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите завершить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("CollectOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "Collect");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите назначить статус 'СБОР' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("DeliveryOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "Delivery");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите назначить статус 'ДОСТАВКА' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("ToWorkOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "ToWork");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите назначить статус 'В РАБОТЕ' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("Departure")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "Departure");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите произвести 'ВЫЕЗД' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("SendOrdersToOffice")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "ToOffice");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите 'ВЕРНУТЬ В ОФИС' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("WaitCollectOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "WaitCollect");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ СБОР' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("WaitDeliveryOrders")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "WaitDelivery");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ ДОСТАВКУ' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
             }
@@ -637,7 +827,7 @@ public class ManagerHandler {
         return false;
     }
 
-    public void deleteAllSendedMsg(User user){
+    public void deleteAllSendedMsg(User user) {
         for (Long messageID : getAllSendedMsgsID(user.getUID()))
             try {
                 bot.deleteMsg(user.getTID(), messageID.intValue());

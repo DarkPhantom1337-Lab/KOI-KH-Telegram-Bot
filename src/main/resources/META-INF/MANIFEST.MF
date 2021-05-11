@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Main-Class: ua.darkphantom1337.koi.kh.Bot
+Class-Path: jackson-module-jaxb-annotations-2.8.7.jar httpcore-4.4.6.jar
+  jersey-media-jaxb-2.25.1.jar mysql-connector-java-8.0.20.jar guava-13.
+ 0.1.jar google-http-client-1.21.0.jar commons-logging-1.2.jar aopallian
+ ce-repackaged-2.5.0-b32.jar guice-4.1.0.jar google-api-client-1.21.0.ja
+ r google-oauth-client-jetty-1.11.0-beta.jar jetty-6.1.26.jar jackson-ja
+ xrs-json-provider-2.8.7.jar javax.ws.rs-api-2.0.1.jar jackson-core-2.8.
+ 7.jar hk2-locator-2.5.0-b32.jar google-http-client-jackson2-1.21.0.jar 
+ jersey-server-2.25.1.jar jersey-media-json-jackson-2.25.1.jar jersey-co
+ mmon-2.25.1.jar jetty-util-6.1.26.jar activation-1.1.jar jackson-annota
+ tions-2.8.0.jar google-oauth-client-1.21.0.jar javase-3.4.0.jar mail-1.
+ 4.jar grizzly-http-server-2.3.28.jar core-3.4.0.jar guava-jdk5-17.0.jar
+  google-oauth-client-java6-1.11.0-beta.jar jersey-container-grizzly2-ht
+ tp-2.25.1.jar jackson-jaxrs-base-2.8.7.jar jcommander-1.72.jar commons-
+ codec-1.9.jar osgi-resource-locator-1.0.1.jar javax.annotation-api-1.2.
+ jar jersey-entity-filtering-2.25.1.jar grizzly-http-2.3.28.jar telegram
+ bots-meta-3.5.jar jai-imageio-core-1.4.0.jar commons-io-2.5.jar validat
+ ion-api-1.1.0.Final.jar hk2-utils-2.5.0-b32.jar httpclient-4.5.3.jar pr
+ otobuf-java-3.6.1.jar google-api-services-sheets-v4-rev1-1.21.0.jar tel
+ egrambots-3.5.jar aopalliance-1.0.jar jersey-client-2.25.1.jar javax.in
+ ject-1.jar jackson-databind-2.8.7.jar jsr305-1.3.7.jar core-1.47.1.jar 
+ servlet-api-2.5-20081211.jar json-20160810.jar grizzly-framework-2.3.28
+ .jar hk2-api-2.5.0-b32.jar jersey-guava-2.25.1.jar javax.inject-2.5.0-b
+ 32.jar httpmime-4.5.3.jar javassist-3.20.0-GA.jar
+

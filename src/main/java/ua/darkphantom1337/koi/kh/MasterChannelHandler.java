@@ -134,7 +134,9 @@ public class MasterChannelHandler {
                         if (iddata != null && !iddata.equals("") && !iddata.equals(" "))
                             usersID = Arrays.stream(iddata.split(";")).mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
                         for (Long id : usersID) {
-                            bot.addSelectedOrderForReconsile(id, work.getOrderID());
+                            UsersData.addSelectedOrderForReconcile(id, work.getOrderID(), UsersData.ReconcileAnswer.Reconcile);
+                            System.out.println("AddSubOrderIDForUser=" + id + "ss+" + work.getOrderID());
+                         //   bot.addSelectedOrderForReconsile(id, work.getOrderID());
                         }
                         bot.updateVosstMsg(new SubOrder(work.getOrderID()).getOrderID(), "Мастер просит согласовать восстановление по заявке №" + subOrder.getOrderID()
                                     + " и катриджу " + subOrder.getModel() + "(№" + subOrder.getSubOrderID() + ") и работе №" + work.getWorkID() + ".\nКомпоненты на замену: " + work.getNeedRecoveryComponentsName());

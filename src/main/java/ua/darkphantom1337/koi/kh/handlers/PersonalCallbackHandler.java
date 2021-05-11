@@ -2,10 +2,7 @@ package ua.darkphantom1337.koi.kh.handlers;
 
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
-import ua.darkphantom1337.koi.kh.Bot;
-import ua.darkphantom1337.koi.kh.DarkQRWriter;
-import ua.darkphantom1337.koi.kh.DataBase;
-import ua.darkphantom1337.koi.kh.OrderLocations;
+import ua.darkphantom1337.koi.kh.*;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.*;
@@ -95,7 +92,7 @@ public class PersonalCallbackHandler {
                     try {
                         int zn = order.getOrderID().intValue();
                         bot.deleteMsg(zChannelID, order.getMainMsgID());
-                        bot.sendCustomMessageToZChanel(zn, msgText + "« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", bot.getObrobotkaTrueButton(zn));
+                        bot.sendCustomMessageToZChanel(zn, msgText + "« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", InlineButtons.getObrobotkaTrueButton(zn));
                         bot.info("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
                         bot.sendToLogChanel("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
                     } catch (Exception ex) {
@@ -118,7 +115,7 @@ public class PersonalCallbackHandler {
             if (handleOprosMZ(user, order, data, msgid, cbqID, msgText)) return true;
             if (handleOprosTZ(user, order, data, msgid, cbqID, msgText)) return true;
             if (data.contains("#OPROS-C-Z=")) {
-                bot.editMsg(zChannelID, msgid, bot.getOprButton("cancel ❌❌❌", nz));
+                bot.editMsg(zChannelID, msgid, InlineButtons.getOprButton("cancel ❌❌❌", nz));
                 order.setStatus("Завершена");
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -136,7 +133,7 @@ public class PersonalCallbackHandler {
     private Boolean handleOprosMZ(User user, Order order, String data, Integer msgid, String cbqID, String msgText) {
         if (data.contains("#OPROS-M-Z=")) {
             order.setStatus("Завершена");
-            bot.editMsg(zChannelID, msgid, bot.getOprButton("УТРОМ", order.getOrderID().intValue()));
+            bot.editMsg(zChannelID, msgid, InlineButtons.getOprButton("УТРОМ", order.getOrderID().intValue()));
             int h = Integer.parseInt(new SimpleDateFormat("HH").format(new Date()));
             if (h >= 9 && h <= 12) {
                 new Timer().schedule(new TimerTask() {
@@ -173,7 +170,7 @@ public class PersonalCallbackHandler {
 
     private Boolean handleOprosTZ(User user, Order order, String data, Integer msgid, String cbqID, String msgText) {
         if (data.contains("#OPROS-T-Z=")) {
-            bot.editMsg(zChannelID, msgid, bot.getOprButton("НА2ДНЯ", order.getOrderID().intValue()));
+            bot.editMsg(zChannelID, msgid, InlineButtons.getOprButton("НА2ДНЯ", order.getOrderID().intValue()));
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -218,7 +215,7 @@ public class PersonalCallbackHandler {
             Order order = new Order(data.split("/")[1]);
             order.addDescriptions("REKLAMACIYA-END-" + user.getUserPhone());
             bot.updateZStatus(order.getOrderID().intValue(), "Заявка на рекламацию принята.", "Заявка на рекламацию принята менеджером! Ожидайте звонка...");
-            bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(null));
+            bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(null));
             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Заявка на  рекламацию закрыта"));
             return true;
         }
@@ -233,7 +230,7 @@ public class PersonalCallbackHandler {
                 order.addDescriptions("CANCEL_CONFIRM-" + user.getUserPhone());
                 order.setStatus("Завершена");
                 bot.updateZStatus(order.getOrderID().intValue(), "Заявка отменена.", "❎Отмена заявки №" + order.getOrderID() + " успешно подтверждена менеджером.");
-                bot.editMsg(zChannelID, msgid, bot.getButText("Заявка отменена. Отменил: " + user.getUserName()));
+                bot.editMsg(zChannelID, msgid, InlineButtons.getButText("Заявка отменена. Отменил: " + user.getUserName()));
                 bot.deleteMsg(zChannelID, order.getMainMsgID());
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -258,7 +255,7 @@ public class PersonalCallbackHandler {
                 order.addDescriptions("OTKLON_CANCEL");
                 order.addDescriptions("OTKLON_CANCEL-" + user.getUserName());
                 bot.updateZStatus(order.getOrderID().intValue(), "Отмена заявки отклонена.", "❌Отмена заявки №" + order.getOrderID() + " не была подтверждена менеджером.");
-                bot.editMsg(zChannelID, msgid, bot.getButText("Отмена заявки отклонена. Отклонил: " + user.getUserName()));
+                bot.editMsg(zChannelID, msgid, InlineButtons.getButText("Отмена заявки отклонена. Отклонил: " + user.getUserName()));
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
@@ -308,11 +305,11 @@ public class PersonalCallbackHandler {
             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID)
                     .setText("Ваш текст успешно отправлен пользователю."));
             bot.editMsg(user.getTID(), msgid, "Отправлен текст на согласование по заявке #" + order.getOrderID() + "\nТекст: " + msgText);
-            bot.editMsg(user.getTID(), msgid, bot.getM1Button(order.getOrderID().intValue()));
+            bot.editMsg(user.getTID(), msgid, InlineButtons.getM1Button(order.getOrderID().intValue()));
             for (String subOrderID : data.split("=")[1].split("/"))
                 new SubOrder(subOrderID).setStatus("Ожидает согласования...");
             bot.updateMainOrderMessage(order.getOrderID());
-            bot.clearSelectedOrderForReconsile(user.getUID());
+          //  UsersData.clearSelectedOrdersForReconcile(user.getUID());
             return true;
         }
         return false;
@@ -329,12 +326,13 @@ public class PersonalCallbackHandler {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Вам не разрешено согласовывать заявки.").setShowAlert(true));
                 return true;
             }
-            bot.updateVosstMsg(user,order.getOrderID(), user.getUserName() + ", выберите какой(ие) картридж(и) Вам нужно согласовать по заявке №" + order.getOrderID() + " от " + new User(new TidToUidTable(order.getUID(), false).getTelegramID()).getUserName());
-            bot.editMsg(Long.parseLong(bot.getZayavChannelID()), msgid, bot.getObrobotkaTrueTrueButton());
+            UsersData.clearSelectedOrdersForReconcile(user.getUID());
+            bot.updateVosstMsg(user, order.getOrderID(), user.getUserName() + ", выберите какой(ие) картридж(и) Вам нужно согласовать по заявке №" + order.getOrderID() + " от " + new User(new TidToUidTable(order.getUID(), false).getTelegramID()).getUserName());
+            bot.editMsg(Long.parseLong(bot.getZayavChannelID()), msgid, InlineButtons.getObrobotkaTrueTrueButton());
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    bot.editMsg(Long.parseLong(bot.getZayavChannelID()), msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
+                    bot.editMsg(Long.parseLong(bot.getZayavChannelID()), msgid, InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
                 }
             }, 60000);
             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Перейдите пожалуйста в личный чат с ботом..."));
@@ -463,14 +461,12 @@ public class PersonalCallbackHandler {
             }
             if (status.equals("заявка в работе") || status.equals("4")) {
                 bot.updateZStatus(order.getOrderID().intValue(), "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.");
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Статус заявки изменён."));
                 try {
-                    bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
-                    bot.updateMainOrderMessage(order.getOrderID());
+                    bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Статус заявки изменён."));
-
                 for (Long subOrderID : order.getAllSubOrdersID()) {
                     MasterWork work = new MasterWork(DataBase.getNextMasterWorkID());
                     work.setOrderID(subOrderID);
@@ -483,6 +479,11 @@ public class PersonalCallbackHandler {
                     DataBase.saveOrderInSheet(subOrderID, "ID");
                 }
                 order.setAccurateStatus("В работе");
+                try {
+                    bot.updateMainOrderMessage(order.getOrderID());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
                 try {
                     for (Long taskID : order.getAllTasksID()) {
                         Task task = new Task(taskID);
@@ -529,7 +530,7 @@ public class PersonalCallbackHandler {
                 }
             }
             try {
-                bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
+                bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
                 bot.updateMainOrderMessage(order.getOrderID());
             } catch (Exception e1) {
                 e1.printStackTrace();
@@ -542,9 +543,12 @@ public class PersonalCallbackHandler {
     }
 
     public Boolean handleOrderRecovery(User user, String data, Integer msgid, String cbqID, String msgText) {
-        if (data.startsWith("#Manager/Reconciliation/ForciblyReconcile/")) {
+        if (data.startsWith("#Manager/Reconciliation/Select/ForciblyReconcile/")) {
             try {
-                Order order = new Order(data.split("/")[3]);
+                UsersData.addSelectedOrderForReconcile(user.getUID(), Long.parseLong(data.split("/")[4]), UsersData.ReconcileAnswer.ForcedRecovery);
+                bot.editMsg(user.getTID(), msgid, InlineButtons.getAllSubOrdersButtons(new SubOrder(data.split("/")[4]).getOrderID(), user.getUID()));
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Действие выполнено!"));
+               /* Order order = new Order(data.split("/")[3]);
                 if (Bot.bot.getSelectedOrderForReconsile(user.getUID()).isEmpty()) {
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Сначала выберите картридж!"));
                     return true;
@@ -554,15 +558,19 @@ public class PersonalCallbackHandler {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Согласование успешно завершено!\nКлиент уведомлён.").setShowAlert(true));
                 bot.deleteMsg(user.getTID(), msgid);
                 bot.clearSelectedOrderForReconsile(user.getUID());
+            */
             } catch (Exception exp) {
                 exp.printStackTrace();
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Ошибка! Data: " + data + "\nОбратитесь к DarkPhantom1337").setShowAlert(true));
             }
             return true;
         }
-        if (data.equals("#Manager/Reconciliation/CancelForciblyReconcile/")) {
+        if (data.startsWith("#Manager/Reconciliation/Select/CancelForciblyReconcile/")) {
             try {
-                Order order = new Order(data.split("/")[3]);
+                UsersData.addSelectedOrderForReconcile(user.getUID(), Long.parseLong(data.split("/")[4]), UsersData.ReconcileAnswer.ForcedCancelRecovery);
+                bot.editMsg(user.getTID(), msgid, InlineButtons.getAllSubOrdersButtons(new SubOrder(data.split("/")[4]).getOrderID(), user.getUID()));
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Действие выполнено!"));
+               /* Order order = new Order(data.split("/")[3]);
                 if (Bot.bot.getSelectedOrderForReconsile(user.getUID()).isEmpty()) {
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Сначала выберите картридж!"));
                     return true;
@@ -572,7 +580,9 @@ public class PersonalCallbackHandler {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Согласование успешно завершено!\nКлиент уведомлён.").setShowAlert(true));
                 bot.deleteMsg(user.getTID(), msgid);
                 bot.clearSelectedOrderForReconsile(user.getUID());
+            */
             } catch (Exception exp) {
+
                 exp.printStackTrace();
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Ошибка! Data: " + data + "\nОбратитесь к DarkPhantom1337").setShowAlert(true));
             }
@@ -588,7 +598,7 @@ public class PersonalCallbackHandler {
             cartridge.create(order.getModel(), order.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
             new User(cartridge.getOwnersID().get(0)).addCartridgeID(cartridge.getID());
             order.addDescriptions("QR-CREATE");
-            bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
+            bot.editMsg(zChannelID, msgid,InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
             try {
                 bot.sendDocument(new SendDocument().setNewDocument(DarkQRWriter.createQRCode(cartridge.getID()))
                         .setChatId(user.getTID()).setCaption("QR для картриджа №" + cartridge.getID() + " успешно создан."
@@ -605,29 +615,141 @@ public class PersonalCallbackHandler {
     }
 
     public Boolean handleSelectSubOrderForReconcile(User user, String data, Integer msgid, String cbqID, String msgText) {
-        if (data.startsWith("#Manager/Reconciliation/SelectSubOrder/")) {
+        if (data.startsWith("#Manager/Reconciliation/ConfirmReconcile/")) {
             try {
-                Long subOrderID = Long.parseLong(data.split("/")[3]);
-                bot.addSelectedOrderForReconsile(user.getUID(), subOrderID);
-                bot.editMsg(user.getTID(), msgid, InlineButtons.getAllSubOrdersButtons(new SubOrder(subOrderID).getOrderID(), user.getUID()));
-                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Действие выполнено!").setShowAlert(true));
+                Long orderID = Long.parseLong(data.split("/")[3]);
+                HashMap<Long, UsersData.ReconcileAnswer> selectedSubOrders = UsersData.getSelectedOrdersForReconcile(user.getUID());
+                if (selectedSubOrders.isEmpty()) {
+                    bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Сначала выберите картридж!").setShowAlert(true));
+                    return true;
+                }
+               /* user.setUserAction("wait_reconcile_text");
+                user.sendMessage("\uD83D\uDC49 " +user.getUserName() + ", напишите ТЕКСТ согласования и отправьте мне :-)");
+                return true;*/
+                bot.editMsg(user.getTID(), msgid, InlineButtons.getPreReconcileConfirmButton(orderID.toString()));
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Выполняю..."));
+                String text = "ℹ️Комплексное согласование выполнено: ";
+                Order order = new Order(orderID);
+                List<Long> allSubOrdersID = order.getAllSubOrdersID();
+
+                List<Long> subOrdersForcedReconcile = UsersData.getSelectetSubOrderFilterAnswer(user.getUID(), UsersData.ReconcileAnswer.ForcedRecovery);
+                List<Long> subOrdersForcedCancelReconcile = UsersData.getSelectetSubOrderFilterAnswer(user.getUID(), UsersData.ReconcileAnswer.ForcedCancelRecovery);
+                List<Long> subOrdersReconcile = UsersData.getSelectetSubOrderFilterAnswer(user.getUID(), UsersData.ReconcileAnswer.Reconcile);
+
+                String subOrdersModelsForcedCancelReconcile = "",subOrdersModelsForcedReconcile = "",subOrdersModelsReconcile = "";
+
+                /**
+                 * ----------------- Reconcile CANCEL FORCED
+                 */
+
+                for (Long subOrderID : subOrdersForcedCancelReconcile) {
+                    try {
+                        SubOrder subOrder = new SubOrder(subOrderID);
+                        if (allSubOrdersID.contains(subOrderID)) {
+                            subOrdersModelsForcedCancelReconcile += subOrder.getModel() + ";";
+                            text += "\n\uD83D\uDC49 Order №" + orderID + "/" + subOrderID + " - Отказ от восстановления";
+                        } else
+                            subOrdersForcedCancelReconcile.remove(subOrderID);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (!subOrdersForcedCancelReconcile.isEmpty()) {
+                    try {
+                        bot.handVosst(bot.u.objectToString(subOrdersForcedCancelReconcile, "/"), "Telegram", "CANCEL");
+                        bot.updateZStatus(orderID.intValue(), "Отказ от восстановления", "Вы отказались от восстановления картриджа(ей) " + subOrdersModelsForcedCancelReconcile + " через телефон/месседжер.");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                /**
+                 * ----------------- Reconcile FORCED
+                 */
+
+                for (Long subOrderID : subOrdersForcedReconcile) {
+                    try {
+                        SubOrder subOrder = new SubOrder(subOrderID);
+                        if (allSubOrdersID.contains(subOrderID)) {
+                            subOrdersModelsForcedReconcile += subOrder.getModel() + ";";
+                            text += "\n\uD83D\uDC49 Order №" + orderID + "/" + subOrderID + " - Восстановление согласовано";
+                        } else
+                            subOrdersForcedReconcile.remove(subOrderID);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (!subOrdersForcedReconcile.isEmpty()) {
+                    try {
+                        bot.handVosst(bot.u.objectToString(subOrdersForcedReconcile, "/"), "Telegram", "SOGLASOVANO");
+                        bot.updateZStatus(orderID.intValue(), "Восстановление согласовано", "Вы подтвердили восстановления картриджа(ей) " + subOrdersModelsForcedReconcile + " через телефон/месседжер.");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                /**
+                 * ----------------- Reconcile
+                 */
+
+                if (!subOrdersReconcile.isEmpty()) {
+                    UsersData.clearSelectedOrdersForReconcile(user.getUID());
+                    for (Long subOrderID : subOrdersReconcile) {
+                        try {
+                            SubOrder subOrder = new SubOrder(subOrderID);
+                            UsersData.addSelectedOrderForReconcile(user.getUID(), subOrderID, UsersData.ReconcileAnswer.Reconcile);
+                            if (allSubOrdersID.contains(subOrderID)) {
+                                subOrdersModelsReconcile += subOrder.getModel() + ";";
+                                text += "\n\uD83D\uDC49 Order №" + orderID + "/" + subOrderID + " - Ожидаю текст согласования";
+                            } else
+                                subOrdersReconcile.remove(subOrderID);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else             UsersData.clearSelectedOrdersForReconcile(user.getUID());
+
+                user.sendMessage(text);
+                if (!subOrdersReconcile.isEmpty()) {
+                    user.setUserAction("wait_reconcile_text");
+                    user.sendMessage("\uD83D\uDC49 " +user.getUserName() + ", напишите ТЕКСТ согласования и отправьте мне :-)");
+                    bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Напишите текст согласования").setShowAlert(true));
+                }
+                //UsersData.clearSelectedOrdersForReconcile(user.getUID());
+               return true;
             } catch (Exception exp) {
                 exp.printStackTrace();
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Ошибка! Data: " + data + "\nОбратитесь к DarkPhantom1337").setShowAlert(true));
             }
             return true;
         }
-        if (data.startsWith("#Manager/Reconciliation/Reconcile/")) {
+        if (data.startsWith("#Manager/Reconciliation/Select/Reconcile/")) {
             try {
-                Order order = new Order(data.split("/")[3]);
-                if (Bot.bot.getSelectedOrderForReconsile(user.getUID()).isEmpty()) {
+                //Order order = new Order(data.split("/")[3]);
+                UsersData.addSelectedOrderForReconcile(user.getUID(), Long.parseLong(data.split("/")[4]), UsersData.ReconcileAnswer.Reconcile);
+                bot.editMsg(user.getTID(), msgid, InlineButtons.getAllSubOrdersButtons(new SubOrder(data.split("/")[4]).getOrderID(), user.getUID()));
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Действие выполнено!"));
+                /*if (Bot.bot.getSelectedOrderForReconsile(user.getUID()).isEmpty()) {
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Сначала выберите картридж!"));
                 } else {
                     bot.deleteMsg(user.getTID(), msgid);
                     user.setUserAction("wait_reconcile_text");
                     user.sendMessage(user.getUserName() + ", напишите текст согласования и отправьте мне :-)");
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Напишите текст согласования мне"));
-                }
+                }*/
+                return true;
+            } catch (Exception exp) {
+                exp.printStackTrace();
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Ошибка! Data: " + data + "\nОбратитесь к DarkPhantom1337").setShowAlert(true));
+            }
+            return true;
+        }
+        if (data.startsWith("#Manager/Reconciliation/HideReconcile")) {
+            try {
+                new Order(data.split("/")[3]).setVosstMsgText("");
+                UsersData.clearSelectedOrdersForReconcile(user.getUID());
+                bot.deleteMsg(user.getTID(), msgid);
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Действие выполнено!"));
                 return true;
             } catch (Exception exp) {
                 exp.printStackTrace();
