@@ -1,7 +1,8 @@
-package ua.darkphantom1337.koi.kh;
+package ua.darkphantom1337.koi.kh.buttons;
 
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.entitys.MasterWork;
 
 import java.util.ArrayList;

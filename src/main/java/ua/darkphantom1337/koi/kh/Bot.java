@@ -1,11 +1,8 @@
 package ua.darkphantom1337.koi.kh;
 
-import com.google.gdata.util.ServiceException;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.ActionType;
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.*;
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageReplyMarkup;
@@ -15,27 +12,26 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
+import ua.darkphantom1337.koi.kh.buttons.MasterChannelButtons;
 import ua.darkphantom1337.koi.kh.buttons.ReplyButtons;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.handlers.*;
+import ua.darkphantom1337.koi.kh.sheets.GoogleSheetsAPI;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class Bot extends TelegramLongPollingBot {

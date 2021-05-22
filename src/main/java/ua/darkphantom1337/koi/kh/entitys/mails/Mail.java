@@ -1,4 +1,4 @@
-package ua.darkphantom1337.koi.kh.entitys;
+package ua.darkphantom1337.koi.kh.entitys.mails;
 
 import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.database.MailingsTable;

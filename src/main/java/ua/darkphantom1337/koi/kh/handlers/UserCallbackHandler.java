@@ -2,7 +2,7 @@ package ua.darkphantom1337.koi.kh.handlers;
 
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import ua.darkphantom1337.koi.kh.Bot;
-import ua.darkphantom1337.koi.kh.DataBase;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.entitys.Order;
 import ua.darkphantom1337.koi.kh.entitys.User;

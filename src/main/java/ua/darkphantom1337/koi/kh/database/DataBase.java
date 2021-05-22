@@ -1,6 +1,6 @@
-package ua.darkphantom1337.koi.kh;
+package ua.darkphantom1337.koi.kh.database;
 
-import ua.darkphantom1337.koi.kh.database.TidToUidTable;
+import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.entitys.MasterWork;
 import ua.darkphantom1337.koi.kh.entitys.Order;
 import ua.darkphantom1337.koi.kh.entitys.SubOrder;

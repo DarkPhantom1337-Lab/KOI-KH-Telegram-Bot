@@ -3,7 +3,7 @@ package ua.darkphantom1337.koi.kh.buttons;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ua.darkphantom1337.koi.kh.Bot;
-import ua.darkphantom1337.koi.kh.DataBase;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.OrderLocations;
 import ua.darkphantom1337.koi.kh.UsersData;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;

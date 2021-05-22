@@ -1,6 +1,8 @@
-package ua.darkphantom1337.koi.kh;
+package ua.darkphantom1337.koi.kh.handlers;
 
 import org.telegram.telegrambots.api.objects.Message;
+import ua.darkphantom1337.koi.kh.Bot;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 
 public class Handlers {
 

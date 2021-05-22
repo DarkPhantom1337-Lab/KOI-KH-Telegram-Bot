@@ -1,4 +1,4 @@
-package ua.darkphantom1337.koi.kh;
+package ua.darkphantom1337.koi.kh.qr;
 
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;

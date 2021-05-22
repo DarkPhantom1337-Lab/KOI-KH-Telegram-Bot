@@ -1,4 +1,4 @@
-package ua.darkphantom1337.koi.kh;
+package ua.darkphantom1337.koi.kh.qr;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
