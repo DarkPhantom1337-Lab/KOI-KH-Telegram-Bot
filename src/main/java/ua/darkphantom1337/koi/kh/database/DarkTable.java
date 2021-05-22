@@ -1,7 +1,5 @@
 package ua.darkphantom1337.koi.kh.database;
 
-import ua.darkphantom1337.koi.kh.DataBase;
-
 import java.util.List;
 
 class DarkTable {

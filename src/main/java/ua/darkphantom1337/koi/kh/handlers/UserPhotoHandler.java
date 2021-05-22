@@ -1,8 +1,10 @@
 package ua.darkphantom1337.koi.kh.handlers;
 
 import ua.darkphantom1337.koi.kh.*;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.entitys.Cartridge;
 import ua.darkphantom1337.koi.kh.entitys.User;
+import ua.darkphantom1337.koi.kh.qr.DarkQRReader;
 
 public class UserPhotoHandler {
 

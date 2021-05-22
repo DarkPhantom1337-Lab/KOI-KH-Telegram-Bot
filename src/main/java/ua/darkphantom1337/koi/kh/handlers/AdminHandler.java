@@ -9,12 +9,14 @@ import org.telegram.telegrambots.api.methods.send.SendVideo;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.*;
-import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
+import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
+import ua.darkphantom1337.koi.kh.entitys.mails.Mail;
 import ua.darkphantom1337.koi.kh.entitys.mails.MailStatus;
 import ua.darkphantom1337.koi.kh.handlers.callback.admin.AdminCallbackHandler;
+import ua.darkphantom1337.koi.kh.qr.DarkQRWriter;
 
 import java.io.BufferedReader;
 import java.io.File;
