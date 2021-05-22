@@ -113,7 +113,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public Boolean enabled = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
         System.out.println("Starting KOI-BOT...");
         DataBase.connectToBase("koi.mysql.ukraine.com.ua", "koi_bot", "koi_bot", "n5C-N6*8ii");
         DataBase.connectToPriceBase("koi.mysql.ukraine.com.ua", "koi_v2inua", "koi_v2inua", "rxn74rh5");
@@ -139,7 +139,7 @@ public class Bot extends TelegramLongPollingBot {
             pch = new PersonalCallbackHandler();
             sheetsAPI = new GoogleSheetsAPI();
         }
-
+        new MailingsThread().start();
     }
 
     public static void registerBot() {
@@ -326,8 +326,10 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override //Получение обновлений(Сообщения/Данные и т.д.)
     public void onUpdateReceived(Update e) {
+        System.out.println(e.toString());
         if (bot.enabled) {
             if (e.hasMessage()) {
+
                 Message msg = e.getMessage();
                 Long fromID = msg.getFrom().getId().longValue(), fid = fromID, chatID = msg.getChatId();
                 User user = new User(fromID);
@@ -358,12 +360,12 @@ public class Bot extends TelegramLongPollingBot {
         return java.sql.Date.valueOf(dateToConvert);
     }
 
-    public void updateZStatus(Integer zid, String smallstatus, String longstatus) {
+    public void updateZStatus(Integer zid, String smallstatus, String longstatus, Boolean notify) {
         Order order = new Order(zid);
         User user = new User(new TidToUidTable(order.getUID(), false).getTelegramID());
         try {
             int smi = order.getStatusMsgID();
-            if (smi > 0)
+            if (smi > 0 && notify)
                 deleteMsg(user.getTID(), smi);
         } catch (Exception ignore) {
         }
@@ -372,7 +374,34 @@ public class Bot extends TelegramLongPollingBot {
             current_statuses += "\n" + status;
         current_statuses += "\n\uD83D\uDC49 Текущий статус: " + longstatus;
         order.addStatuses(bot.u.getDate("dd/MM/YY HH:mm:ss") + " " + smallstatus);
-        order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
+        if (notify)
+            order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
+    }
+
+
+    public void notifyClient(Long orderID) {
+        Order order = new Order(orderID);
+        User user = new User(new TidToUidTable(order.getUID(), false).getTelegramID());
+        String accurateStatus = order.getAccurateStatus(), longstatus = "";
+        if (accurateStatus.equals("Сбор"))
+            longstatus = "Курьер выехал к Вам забрать картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.";
+        if (accurateStatus.equals("Доставка"))
+            longstatus = "Курьер везет Вам картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.";
+        if (accurateStatus.equals("В работе"))
+            longstatus = "Ваша заявка в работе, пожалуйста ожидайте.";
+        if (!longstatus.equals("")) {
+            try {
+                int smi = order.getStatusMsgID();
+                if (smi > 0)
+                    deleteMsg(user.getTID(), smi);
+            } catch (Exception ignore) {
+            }
+            String current_statuses = "ℹ️ Заявка №" + orderID;
+            for (String status : order.getAllStatuses())
+                current_statuses += "\n" + status;
+            current_statuses += "\n\uD83D\uDC49 Текущий статус: " + longstatus;
+            order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
+        }
     }
 
     public void updateVosstMsg(Long orderID, String text) {
@@ -460,6 +489,9 @@ public class Bot extends TelegramLongPollingBot {
                 return false;
             String smodel = txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ ]", "");
             user_model.put(id, smodel);
+            if (user_tema.get(id).equals("Заправка картриджа"))
+                user.addModel(smodel);
+            else user.addModelRem(smodel);
             UsersData.addOrderModel(id, smodel);
             UsersData.addSelectedOrderModel(id, smodel);
             if (DataBase.isCorporationWorker(id)) {
@@ -474,7 +506,8 @@ public class Bot extends TelegramLongPollingBot {
                 bot.sendMsgToUser(user.getTID(), "Модель '" + smodel + "' добавлена в заявку! Если Вы хотите добавить ещё выберите модель снизу или напишите её название мне.", "model");
                 return true;
             }
-            if (user_tema.containsKey(id) && user_tema.get(id).equals("Заправка картриджа")) {
+            bot.sendMsgToUser(user.getTID(), "Модель '" + smodel + "' добавлена в заявку! Если Вы хотите добавить ещё выберите модель снизу или напишите её название мне.", "model");
+            /*if (user_tema.containsKey(id) && user_tema.get(id).equals("Заправка картриджа")) {
                 if (DataBase.getUsFileds(id, "last_model") != null && !DataBase.getUsFileds(id, "last_model").equals("Не указано")) {
                     if (!DataBase.getUsFileds(id, "last_model").split("&&&")[0].equals(txt))
                         DataBase.setUsFields(id, "last_model", txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ ]", "") + "&&&" + DataBase.getUsFileds(id, "last_model").split("&&&")[0]);
@@ -491,8 +524,7 @@ public class Bot extends TelegramLongPollingBot {
                     DataBase.setUsFields(id, "last_model_rem", txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ ]", ""));
                 }
                 bot.sendMsgToUser(user.getTID(), "Модель '" + smodel + "' добавлена в заявку! Если Вы хотите добавить ещё выберите модель снизу или напишите её название мне.", "model");
-
-            }
+            }*/
             return true;
         }
         return false;
@@ -512,21 +544,25 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
         if (user_tema.containsKey(id) && user_tema.get(id).equals("Заправка картриджа")) {
-            List<String> last_models = new ArrayList<String>();
-            String model_data = DataBase.getUsFileds(id, "last_model");
+
+
+            List<String> last_models = new User(id,false).getModels();
+           /* String model_data = DataBase.getUsFileds(id, "last_model");
             if (model_data != null && !model_data.equals("") && !model_data.equals(" "))
                 for (String model : model_data.split("&&&"))
                     if (!last_models.contains(model))
-                        last_models.add(model);
+                        last_models.add(model);*/
             UsersData.setOrderModels(id, last_models);
             return;
         } else {
-            List<String> last_models = new ArrayList<String>();
-            String model_data = DataBase.getUsFileds(id, "last_model_rem");
+
+
+            List<String> last_models = new User(id,false).getModelsRem();
+            /*String model_data = DataBase.getUsFileds(id, "last_model_rem");
             if (model_data != null && !model_data.equals("") && !model_data.equals(" "))
                 for (String model : model_data.split("&&&"))
                     if (!last_models.contains(model))
-                        last_models.add(model);
+                        last_models.add(model);*/
             UsersData.setOrderModels(id, last_models);
             return;
         }
@@ -535,7 +571,7 @@ public class Bot extends TelegramLongPollingBot {
     public static void saveZayav(User user, Message msg, String txt) {
         try {
             Long id = user.getUID();
-            if (!user_tema.containsKey(id) || !user_model.containsKey(id)) {
+            if (!user_tema.containsKey(id)) {
                 user.setUserAction("main");
                 user.sendMessage("Ваша заявка не была отправлена! Повторите попытку либо свяжитесь с менеджером!", "main");
                 return;
@@ -565,7 +601,7 @@ public class Bot extends TelegramLongPollingBot {
                     user.getUserType(), DataBase.isCorporationWorker(id) ? DataBase.getUserName(Math.toIntExact(id)) + "\nКомпания: #" + new Corporation(DataBase.getCorporationID(id)).getName() : user.getUserName(),
                     user.getUserPhone());
             bot.updateMainOrderMessage((long) znum);
-            bot.updateZStatus(znum, "Заявка подана.", "Заявка " + znum + " успешно передана нашему менеджеру! В скором времени он свяжется с Вами!");
+            bot.updateZStatus(znum, "Заявка подана.", "Заявка " + znum + " успешно передана нашему менеджеру! В скором времени он свяжется с Вами!", true);
             user.setUserAction("main");
             DataBase.setZNum(znum);
             DataBase.setUsFields(id, "last_z_id", znum);
@@ -649,7 +685,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8";
+        return /*"1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8"*/"1267128345:AAHO8jKhdo3kJeX5MxPJKw25cO6KYdy_7ww";
     }
 
     /*by DarkPhantom1337*/
@@ -710,6 +746,7 @@ public class Bot extends TelegramLongPollingBot {
         return text;
     }
 
+
     public void handleMenu(String menu, SendMessage s, Long user_id) {
         User user = new User(user_id);
         user_id = user.getUID();
@@ -764,6 +801,33 @@ public class Bot extends TelegramLongPollingBot {
                 String subpersmenu = menu.split("/")[2];
                 if (subpersmenu.equals("MainMenu")) {
                     s.setReplyMarkup(ReplyButtons.addAdminQRMenu());
+                    return;
+                }
+            }
+            if (asubmenu.startsWith("Mail")) {
+                String subpersmenu = menu.split("/")[2];
+                if (subpersmenu.equals("MainMenu")) {
+                    s.setReplyMarkup(ReplyButtons.addAdminMailMenu());
+                    return;
+                }
+                if (subpersmenu.equals("When")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailWhenButtons(Long.parseLong(menu.split("/")[3])));
+                    return;
+                }
+                if (subpersmenu.equals("StartOrSetParameters")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailStartOrSetParamaetersButtons(Long.parseLong(menu.split("/")[3])));
+                    return;
+                }
+                if (subpersmenu.equals("SelectParameters")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailSelectParametersButtons(Long.parseLong(menu.split("/")[3])));
+                    return;
+                }
+                if (subpersmenu.equals("Current")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailCurrentButtons(Long.parseLong(menu.split("/")[3])));
+                    return;
+                }
+                if (subpersmenu.equals("WaitStarts")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailWaitStartsButtons(Long.parseLong(menu.split("/")[3])));
                     return;
                 }
             }

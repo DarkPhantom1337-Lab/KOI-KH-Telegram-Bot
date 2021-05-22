@@ -131,7 +131,7 @@ public class ManagerHandler {
                 return true;
             }
             bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";", "/"), "Telegram", "SOGLASOVANO");
-            bot.updateZStatus(selected_z.get(user_id), "Восстановление согласовано", "Вы подтвердили восстановления картриджа через телефон/месседжер.");
+            bot.updateZStatus(selected_z.get(user_id), "Восстановление согласовано", "Вы подтвердили восстановления картриджа через телефон/месседжер.", false);
             bot.sendMsgToUser(user.getTID(), "Согласование по заявке " + selected_z.get(user_id) + " подтверждено принудительно \uD83D\uDC47", "");
             return true;
         }
@@ -141,7 +141,7 @@ public class ManagerHandler {
                 return true;
             }
             bot.handVosst(new Order(selected_z.get(user_id)).getSubOrdersID().replaceAll(";", "/"), "Telegram", "CANCEL");
-            bot.updateZStatus(selected_z.get(user_id), "Отказ от восстановления", "Вы отказались от восстановления картриджа через телефон/месседжер.");
+            bot.updateZStatus(selected_z.get(user_id), "Отказ от восстановления", "Вы отказались от восстановления картриджа через телефон/месседжер.", false);
             bot.sendMsgToUser(user.getTID(), "Согласование по заявке " + selected_z.get(user_id) + " ОТКАЗАНО принудительно \uD83D\uDC47", "");
             return true;
         }
@@ -547,6 +547,16 @@ public class ManagerHandler {
                         removeAllSelectedOrders(user.getUID());
                         return true;
                     }
+                    if (action.equals("Notify")) {
+                        for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
+                            Order order = new Order(selectedOrder);
+                            bot.notifyClient(selectedOrder);
+                        }
+                        deleteAllSendedMsg(user);
+                        user.sendMessage("Клиенты заявок " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " были оповещены статусы..", "Manager/Routes/Main");
+                        removeAllSelectedOrders(user.getUID());
+                        return true;
+                    }
                     if (action.startsWith("SendOrderToCourier")) {
                         Long courierID = Long.parseLong(action.split("%")[1]);
                         for (Long selectedOrder : getAllSelectedOrders(user.getUID())) {
@@ -623,7 +633,7 @@ public class ManagerHandler {
                             all_statuses.remove(all_statuses.size() - 1);
                             order.setAllStatuses(all_statuses);
                             bot.editMsg(Long.parseLong(bot.getZayavChannelID()), order.getMainMsgID(), InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
-                            bot.updateZStatus(order.getOrderID().intValue(), all_statuses.get(all_statuses.size() - 1).replaceAll("[0-9/:]", ""), "");
+                            bot.updateZStatus(order.getOrderID().intValue(), all_statuses.get(all_statuses.size() - 1).replaceAll("[0-9/:]", ""), all_statuses.get(all_statuses.size() - 1).replaceAll("[0-9/:]", ""),false);
                         }
                         deleteAllSendedMsg(user);
                         user.sendMessage("Заявки " + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + " были обновлены. Возвращён прошлый статус..", "Manager/Routes/Main");
@@ -709,7 +719,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "SendOrderToDraft%" + draftNumber);
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите переместить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "  в черновик № " + draftNumber + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите переместить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "'  в черновик № " + draftNumber + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("BackStatus")) {
@@ -729,7 +739,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "EndOrders");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите завершить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите завершить заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("CollectOrders")) {
@@ -739,7 +749,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "Collect");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить статус 'СБОР' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить статус 'СБОР' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("DeliveryOrders")) {
@@ -749,7 +759,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "Delivery");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить статус 'ДОСТАВКА' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить статус 'ДОСТАВКА' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("ToWorkOrders")) {
@@ -759,7 +769,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "ToWork");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить статус 'В РАБОТЕ' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить статус 'В РАБОТЕ' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("Departure")) {
@@ -769,7 +779,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "Departure");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите произвести 'ВЫЕЗД' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите произвести 'ВЫЕЗД' заявкам '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("SendOrdersToOffice")) {
@@ -779,7 +789,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "ToOffice");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите 'ВЕРНУТЬ В ОФИС' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите 'ВЕРНУТЬ В ОФИС' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("WaitCollectOrders")) {
@@ -789,7 +799,7 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "WaitCollect");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ СБОР' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ СБОР' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
                 if (ssubmenu.equals("WaitDeliveryOrders")) {
@@ -799,7 +809,17 @@ public class ManagerHandler {
                     }
                     selected_action.put(user.getUID(), "WaitDelivery");
                     deleteAllSendedMsg(user);
-                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ ДОСТАВКУ' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    user.sendMessage("Вы хотите назначить статус 'ОЖИДАЕТ ДОСТАВКУ' заявки '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
+                    return true;
+                }
+                if (ssubmenu.equals("Notify")) {
+                    if (getAllSelectedOrders(user.getUID()).isEmpty()) {
+                        bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Вы не выбрали заявки!"));
+                        return true;
+                    }
+                    selected_action.put(user.getUID(), "Notify");
+                    deleteAllSendedMsg(user);
+                    user.sendMessage("Вы хотите оповестить клиента о статусе заявок '" + bot.u.objectToString(getAllSelectedOrders(user.getUID()), ";") + "' ? Подтвердите или отмените действие.", "Manager/Routes/ConfirmAction");
                     return true;
                 }
             }

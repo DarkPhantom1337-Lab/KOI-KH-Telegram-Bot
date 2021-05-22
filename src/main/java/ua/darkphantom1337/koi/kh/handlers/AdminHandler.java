@@ -11,10 +11,9 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.*;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
-import ua.darkphantom1337.koi.kh.entitys.Cartridge;
-import ua.darkphantom1337.koi.kh.entitys.Corporation;
-import ua.darkphantom1337.koi.kh.entitys.Order;
-import ua.darkphantom1337.koi.kh.entitys.User;
+import ua.darkphantom1337.koi.kh.entitys.*;
+import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
+import ua.darkphantom1337.koi.kh.entitys.mails.MailStatus;
 import ua.darkphantom1337.koi.kh.handlers.callback.admin.AdminCallbackHandler;
 
 import java.io.BufferedReader;
@@ -22,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +40,7 @@ public class AdminHandler {
     private List<Long> admins_wait_employee_phone = new ArrayList<>();
     private List<Long> admins_wait_personal_phone = new ArrayList<Long>();
     private List<Long> admins_wait_select_new_personal_position = new ArrayList<Long>();
+    public HashMap<Long, Long> admins_current_mail = new HashMap<>();
 
     private Bot bot;
 
@@ -79,6 +80,74 @@ public class AdminHandler {
         }
         if (text.equals("Управление персоналом")) {
             bot.sendMsgToUser(user.getTID(), "Вы перешли в меню управления персоналом \uD83D\uDE09", "ADMIN/Personal/MainMenu");
+            return true;
+        }
+        if (text.equals("Управление рассылками")) {
+            bot.sendMsgToUser(user.getTID(), "Вы перешли в меню управления рассылками \uD83D\uDE09", "ADMIN/Mails/MainMenu");
+            return true;
+        }
+        /* Меню рассылок */
+        if (text.equals("Создать рассылку")) {
+            user.setUserAction("admin_wait_new_mail");
+            bot.sendMsgToUser(user.getTID(), "Отправьте мне ТЕКСТ или же ФОТО/ФАЙЛ или же ФОТО/ФАЙЛ С ПОДПИСЬЮ для создания рассылки, после этого можно будет её настроить \uD83D\uDE09", "ADMIN/BackToMainMenu");
+            return true;
+        }
+        if (text.equals("Запланированные")) {
+            List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.READY_TO_RUN);
+            if (mailsID.isEmpty()){
+                bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок ожидающих выполнения на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
+            } else {
+                bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
+                for (Long mailID : mailsID){
+                    try {
+                        Mail mail = new Mail(mailID);
+                        user.sendMessage("ℹ️ Рассылка №" + mailID
+                                + "\nБудет выполнена: " + mail.getSendDate()
+                                + "\nСтатус: " + mail.getMailStatus()
+                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/Current/"+ mailID);
+                    } catch (Exception e){
+
+                    }
+                }
+            }
+            return true;
+        }
+        if (text.equals("Не завершённые")) {
+            List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.CREATING);
+            if (mailsID.isEmpty()){
+                bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок НА ЭТАПЕ СОЗДАНИЯ/ЗАПОЛНЕНИЯ на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
+            } else {
+                bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
+                for (Long mailID : mailsID){
+                    try {
+                        Mail mail = new Mail(mailID);
+                        user.sendMessage("ℹ️ Рассылка №" + mailID
+                                + "\nБудет выполнена: " + mail.getSendDate()
+                                + "\nСтатус: " + mail.getMailStatus()
+                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/Current/" + mailID);
+                    } catch (Exception e){
+                    }
+                }
+            }
+            return true;
+        }
+        if (text.equals("Ожидают старта")) {
+            List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.WAITING_TO_START);
+            if (mailsID.isEmpty()){
+                bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок ожидающих РАЗРЕШЕНИЯ НА ВЫПОЛНЕНИЕ на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
+            } else {
+                bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
+                for (Long mailID : mailsID){
+                    try {
+                        Mail mail = new Mail(mailID);
+                        user.sendMessage("ℹ️ Рассылка №" + mailID
+                                + "\nБудет выполнена: " + mail.getSendDate()
+                                + "\nСтатус: " + mail.getMailStatus()
+                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/WaitStarts/"+ mailID);
+                    } catch (Exception e){
+                    }
+                }
+            }
             return true;
         }
         /* Меню корпораций */
@@ -234,6 +303,45 @@ public class AdminHandler {
         return false;
     }
 
+    public boolean handleBirthdayStartFill(User user, String text) {
+        if (text.startsWith("!BIRTHDAY_SET_TEXT")) {
+            user.setUserAction("admin_wait_birthday_text");
+            user.sendMessage("ℹ️Напишите мне текст поздравления пользователей бота KOI-KH \uD83E\uDD2A");
+            return true;
+        }
+        if (text.startsWith("!BIRTHDAY_SET_IMAGE")) {
+            user.setUserAction("admin_wait_birthday_image");
+            user.sendMessage("ℹ️Пришлите мне картинку поздравления пользователей бота KOI-KH \uD83E\uDD2A");
+            return true;
+        }
+        if (text.startsWith("!SET_BIRTHDAY_DATE")) { // !SET_BIRTHDAY_DATE/USERPHONE/dd:MM:yyyy
+            if (!text.contains("/") || text.split("/").length != 3){
+                user.sendMessage("ℹ️Для того чтобы установить дату рождения пользователю используйте команду: !SET_BIRTHDAY_DATE/USERPHONE/dd:MM:yyyy \uD83E\uDD2A");
+                return true;
+            }
+            String[] spl = text.split("/");
+            boolean valid_phone = false;
+            Long ownerid = 0L;
+            for (Long userid : DataBase.getAllUserId()) {
+                String uphone = DataBase.getUsFileds(userid, "phone");
+                if (uphone != null && (uphone.equals(spl[1]) || uphone.equals("+" + spl[1]) || uphone.equals("38" + spl[1]) || uphone.equals("+38" + spl[1]) || uphone.equals("+7" + spl[1]))) {
+                    valid_phone = true;
+                    ownerid = userid;
+                    break;
+                }
+            }
+            if (!valid_phone){
+                user.sendMessage("ℹ️Пользователя с номером телефона '" + spl[1] + "' не найдено в базе бота KOI-KH \uD83E\uDD2A");
+                return true;
+            }
+            user.setBirthday(spl[2].replace(":","/"));
+            user.setUserAction("main");
+            user.sendMessage("ℹ️Пользователю с номером телефона '" + spl[1] + "' установлен день рожднение! \uD83E\uDD2A");
+            return true;
+        }
+        return false;
+    }
+
     public boolean handleChangeQRCommand(User user, String text) {
         if (text.startsWith("!CHANGEQR")) {
             String[] data = text.split("/");
@@ -331,8 +439,8 @@ public class AdminHandler {
                         if (!isqr) {
                             bot.user_tema.put(ownerid, "Заправка картриджа");
                             bot.user_model.put(ownerid, data[2]);
-                            for (String s: data[2].split(";"))
-                            UsersData.addSelectedOrderModel(ownerid, s);
+                            for (String s : data[2].split(";"))
+                                UsersData.addSelectedOrderModel(ownerid, s);
                             bot.saveZayav(new User(new TidToUidTable(ownerid, false).getTelegramID()), null, null);
                             bot.sendMsgToUser(user.getTID(), "Заявка создана!", employee + "/MainMenu");
                             return true;
@@ -427,14 +535,14 @@ public class AdminHandler {
                 try {
                     Integer nz = bot.pi(data[2]);
                     if (data[1].equals("CONFIRM")) {
-                        bot.handVosst(new Order(nz).getSubOrdersID().replaceAll(";","/"), "Telegram", "SOGLASOVANO");
-                        bot.updateZStatus(nz, "Восстановление согласовано", "Вы подтвердили восстановления картриджа через телефон/месседжер.");
+                        bot.handVosst(new Order(nz).getSubOrdersID().replaceAll(";", "/"), "Telegram", "SOGLASOVANO");
+                        bot.updateZStatus(nz, "Восстановление согласовано", "Вы подтвердили восстановления картриджа через телефон/месседжер.", true);
                         bot.sendMsgToUser(user.getTID(), "Восстановление согласовано по заявке " + nz + " сохранён!", employee + "/MainMenu");
                         return true;
                     }
                     if (data[1].equals("CANCEL")) {
-                        bot.handVosst(new Order(nz).getSubOrdersID().replaceAll(";","/"), "Telegram", "CANCEL");
-                        bot.updateZStatus(nz, "Отказ от восстановления", "Вы отказались от восстановления картриджа через телефон/месседжер.");
+                        bot.handVosst(new Order(nz).getSubOrdersID().replaceAll(";", "/"), "Telegram", "CANCEL");
+                        bot.updateZStatus(nz, "Отказ от восстановления", "Вы отказались от восстановления картриджа через телефон/месседжер.", true);
                         bot.sendMsgToUser(user.getTID(), "Отказ от восстановления по заявке " + nz + " сохранён!", employee + "/MainMenu");
                         return true;
                     }
@@ -503,49 +611,49 @@ public class AdminHandler {
         String status = text.split("/")[2];
         if (status.toLowerCase().equals("заявка передана") || status.equals("1")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Заявка передана", "Ваша заявка успешно передана нашему менеджеру! В скором времени он свяжется с Вами!");
+                bot.updateZStatus(nz, "Заявка передана", "Ваша заявка успешно передана нашему менеджеру! В скором времени он свяжется с Вами!", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("заявка принята") || status.equals("2")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Заявка принята", "Заявка принята менеджером! Ожидайте звонка...");
+                bot.updateZStatus(nz, "Заявка принята", "Заявка принята менеджером! Ожидайте звонка...", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("сбор в пути") || status.equals("3")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Курьер выехал к Вам (Сбор)", "Курьер выехал к Вам забрать картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.");
+                bot.updateZStatus(nz, "Курьер выехал к Вам (Сбор)", "Курьер выехал к Вам забрать картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("заявка в работе") || status.equals("4")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.");
+                bot.updateZStatus(nz, "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("доставка в пути") || status.equals("5")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Курьер выехал к Вам (Доставка)", "Курьер везет Вам картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.");
+                bot.updateZStatus(nz, "Курьер выехал к Вам (Доставка)", "Курьер везет Вам картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("заявка закрыта") || status.equals("6")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Заявка закрыта", "Заявка закрыта менеджером.");
+                bot.updateZStatus(nz, "Заявка закрыта", "Заявка закрыта менеджером.", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
         }
         if (status.toLowerCase().equals("заявка отменена") || status.equals("7")) {
             for (Integer nz : zayavki) {
-                bot.updateZStatus(nz, "Заявка отменена", "Заявка отменена менеджером!");
+                bot.updateZStatus(nz, "Заявка отменена", "Заявка отменена менеджером!", true);
                 bot.sendMsgToUser(user_id, "Статус заявки №" + nz + " успешно обновлён!", "");
             }
             return true;
@@ -586,6 +694,96 @@ public class AdminHandler {
 
     private boolean handleNotPreparedMessage(User user, String text, Integer message_id) {
         Long user_id = user.getUID();
+        if (user.getUserAction().equals("admin_mail_wait_date")) {
+            if (!admins_current_mail.containsKey(user.getUID())){
+                user.setUserAction("main");
+                user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
+                return true;
+            }
+            Date date = null;
+            try{
+                date = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(text);
+            } catch (Exception e){
+                user.sendMessage("Неверный формат даты. Введите дату в следующем формате: dd/MM/yyyy HH:mm:ss.", "ADMIN/BackToMain");
+                return true;
+            }
+            if (date != null){
+                user.setUserAction("main");
+                Mail mail = new Mail(admins_current_mail.get(user.getUID()));
+                mail.setSendDate(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(date));
+                user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " заполнена! Дата отправки: " + mail.getSendDate()
+                        + "\n\uD83D\uDC49 Нажмите 'Запустить' чтобы сохранить и разрешить выполнение рассылки [Получатели: ВСЕ]." +
+                        "\n\uD83D\uDC49 Нажмите 'Указать параметр' чтобы выбрать доп. параметр для сортировки получателей.", "ADMIN/Mail/StartOrSetParameters/" + mail.getMailID());
+            } else {
+                user.sendMessage("Неверный формат даты. Введите дату в следующем формате: dd/MM/yyyy HH:mm:ss.", "ADMIN/BackToMain");
+            }
+           return true;
+        }
+        if (user.getUserAction().equals("admin_wait_new_mail")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(DataBase.getNextMailID());
+            admins_current_mail.put(user.getUID(), mail.getMailID());
+            mail.setMailStatus(MailStatus.CREATING);
+            mail.setMailMessage(text);
+            mail.setContentType(ContentType.TEXT);
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана и ОЖИДАЕТ заполнения данных! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/" + mail.getMailID());
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_mail_fil_address")) {
+            if (admins_current_mail.containsKey(user.getUID())) {
+                List<Long> filtered_users = new ArrayList<>();
+                for (Long uid : DataBase.getAllUserId())
+                    if (new User(uid, false).getUserAdres().toLowerCase().contains(text.toLowerCase()))
+                        filtered_users.add(uid);
+                if (filtered_users.isEmpty()) {
+                    user.sendMessage("К сожалению пользователей у которых адрес содержит слово(а) '" + text + "' нету в базе KOI-KH." +
+                            "\n\uD83D\uDC49 Повторите попытку, напишите адрес либо вернитесь в главное меню.", "ADMIN/BackToMainMenu");
+                    return true;
+                }
+                user.setUserAction("main");
+                Mail mail = new Mail(admins_current_mail.get(user.getUID()));
+                mail.setAllRecipientsID(filtered_users);
+                user.sendMessage("Рассылка №" + mail.getMailID() + " заполнена и готова к старту. "
+                        + "\n\uD83D\uDC49 Нажмите 'Запустить' чтобы сохранить и разрешить выполнение рассылки [Получатели: " + filtered_users.size() + " пользователей]." +
+                        "\n\uD83D\uDC49 Нажмите 'Указать параметр' чтобы выбрать доп. параметр для сортировки получателей.", "ADMIN/Mail/StartOrSetParameters/" + mail.getMailID());
+                return true;
+            } else {
+                user.setUserAction("main");
+                user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
+            }
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_mail_fil_cartridge")) {
+            if (admins_current_mail.containsKey(user.getUID())) {
+                List<Long> filtered_users = new ArrayList<>();
+                for (Long uid : DataBase.getAllUserId()){
+                    for (String model : new User(uid,false).getModels()){
+                        if (model.toLowerCase().contains(text.toLowerCase())) {
+                            filtered_users.add(uid);
+                            break;
+                        }
+                    }
+                }
+                if (filtered_users.isEmpty()) {
+                    user.sendMessage("К сожалению пользователей у которых модель содержит слово(а) '" + text + "' нету в базе KOI-KH." +
+                            "\n\uD83D\uDC49 Повторите попытку, напишите адрес либо вернитесь в главное меню.", "ADMIN/BackToMainMenu");
+                    return true;
+                }
+                user.setUserAction("main");
+                Mail mail = new Mail(admins_current_mail.get(user.getUID()));
+                mail.setAllRecipientsID(filtered_users);
+                user.sendMessage("Рассылка №" + mail.getMailID() + " заполнена и готова к старту. "
+                        + "\n\uD83D\uDC49 Нажмите 'Запустить' чтобы сохранить и разрешить выполнение рассылки [Получатели: " + filtered_users.size() + " пользователей]." +
+                        "\n\uD83D\uDC49 Нажмите 'Указать параметр' чтобы выбрать доп. параметр для сортировки получателей.", "ADMIN/Mail/StartOrSetParameters/" + mail.getMailID());
+                return true;
+            } else {
+                user.setUserAction("main");
+                user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
+            }
+            return true;
+        }
         if (admins_wait_corporation_name.contains(user_id)) {
             if (text.equals("Вернуться в меню управления")) return false;
             Long corporation_id = DataBase.getNextCorporationID();
@@ -774,59 +972,13 @@ public class AdminHandler {
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные не актуальны, повторите процедуру повторно."));
                 }
             }
-            bot.info("lol21");
-        }
-        if (data.contains("#SEND_TO_")) {
-            String where = data.split("_")[2];
-            if (where.equals("VIBER")) {
-                bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerV());
-            } else {
-                if (where.equals("TELEGRAM")) {
-                    bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerT());
-                } else {
-                    bot.editMsg(chatid, msgid, InlineButtons.getWhatMessengerAll());
-                }
-            }
-            adm_where.put(fromid, where);
-            bot.sendMsg(chatid.toString(), "Отправка будет происходить в мессенджер: " + where + "\nВыберите по каким критериям будет происходить отправка:", InlineButtons.getAMenuButtons());
-            return true;
-        }
-        if (data.contains("#ADM_SEND_")) {
-            try {
-                String rtype = data.split("_")[2];
-                bot.sendMsgToUser(user.getTID(), "[" + rtype + "] -> Скиньте мне картинку и текст в подписи.");
-                adm_rtype.put(fromid, rtype);
-                bot.answerCallbackQuery(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Скиньте фото/текст"));
-                return true;
-            } catch (Exception ex) {
-                System.out.println(Bot.prefix() + "Error in #ADM_SEND block: ");
-                ex.printStackTrace();
-                return true;
-            }
-        }
-        if (data.contains("#SEND=")) { // 0 SEND  1 WHERE 2 RTYPE  3 NV
-            String where = data.split("=")[1];
-            try {
-                adm_nv.put(fromid, bot.pi(data.split("=")[3]));
-                DataBase.setNLFields(adm_nv.get(fromid), "type", data.split("=")[2]);
-                if (adm_rtype.get(fromid).equals("ALL") && where.equals("NOW")) {
-                    if (adm_where.get(fromid).equals("TELEGRAM"))
-                        sendNewsToTelegramForId(adm_nv.get(fromid), null);
-                    if (adm_where.get(fromid).equals("VIBER"))
-                        sendNewsToViberForId(adm_nv.get(fromid), null);
-                    bot.sendMsgToUser(fromid, "[" + adm_rtype.get(fromid) + "] [" + where + "] -> Рассылка завершена!");
-                    return true;
-                } else adm_wait_values.put(fromid, true);
-                bot.sendMsgToUser(fromid, "[" + adm_rtype.get(fromid) + "] [" + where + "] -> Напишите " + adm_rtype.get(fromid) + " через ',' или '/' или '!' разделитель и отправьте мне.");
-                bot.answerCallbackQuery(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Напишите " + adm_rtype.get(fromid)));
-                return true;
-            } catch (Exception ex) {
-                System.out.println(Bot.prefix() + "Error in #SEND ");
-                ex.printStackTrace();
-                return true;
-            }
         }
         if (AdminCallbackHandler.handleAdminSetVacation(user, data, callid)) return true;
+        if (AdminCallbackHandler.handleAdminMailSetWhen(user, data, msgid, callid)) return true;
+        if (AdminCallbackHandler.handleAdminMailStart(user, data, msgid, callid)) return true;
+        if (AdminCallbackHandler.handleAdminMailSelectParameters(user, data, msgid, callid)) return true;
+        if (AdminCallbackHandler.handleAdminMailSetParameters(user, data, msgid, callid)) return true;
+        if (AdminCallbackHandler.handleAdminMailDelete(user, data, msgid, callid)) return true;
         return false;
     }
 

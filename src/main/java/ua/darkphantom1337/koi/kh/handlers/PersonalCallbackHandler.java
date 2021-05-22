@@ -66,7 +66,7 @@ public class PersonalCallbackHandler {
                     "\uD83D\uDC49 Заявку принял: " + prinyal));
              */
             //bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
-            bot.updateZStatus(order.getOrderID().intValue(), "Заявка принята.", "Заявка № " + order.getOrderID() + " принята менеджером! Ожидайте звонка...");
+            bot.updateZStatus(order.getOrderID().intValue(), "Заявка принята.", "Заявка № " + order.getOrderID() + " принята менеджером! Ожидайте звонка...", true);
 
             CompletableFuture.runAsync(() -> {
                 if (order.getSource().equals("Viber")) {
@@ -91,10 +91,12 @@ public class PersonalCallbackHandler {
                 public void run() {
                     try {
                         int zn = order.getOrderID().intValue();
-                        bot.deleteMsg(zChannelID, order.getMainMsgID());
-                        bot.sendCustomMessageToZChanel(zn, msgText + "« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", InlineButtons.getObrobotkaTrueButton(zn));
-                        bot.info("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
-                        bot.sendToLogChanel("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
+                        if (!new Order(zn).getStatus().contains("Завершена")) {
+                            bot.deleteMsg(zChannelID, order.getMainMsgID());
+                            bot.sendCustomMessageToZChanel(zn, msgText + "\n« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", InlineButtons.getObrobotkaTrueButton(zn));
+                            bot.info("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
+                            bot.sendToLogChanel("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
+                        } else this.cancel();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         bot.info("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal + "\nОшибка при продлении заявки");
@@ -214,7 +216,7 @@ public class PersonalCallbackHandler {
         if (data.startsWith("#REKLAM_HAND")) {
             Order order = new Order(data.split("/")[1]);
             order.addDescriptions("REKLAMACIYA-END-" + user.getUserPhone());
-            bot.updateZStatus(order.getOrderID().intValue(), "Заявка на рекламацию принята.", "Заявка на рекламацию принята менеджером! Ожидайте звонка...");
+            bot.updateZStatus(order.getOrderID().intValue(), "Заявка на рекламацию принята.", "Заявка на рекламацию принята менеджером! Ожидайте звонка...", true);
             bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(null));
             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Заявка на  рекламацию закрыта"));
             return true;
@@ -229,7 +231,10 @@ public class PersonalCallbackHandler {
                 order.addDescriptions("CANCEL_CONFIRM");
                 order.addDescriptions("CANCEL_CONFIRM-" + user.getUserPhone());
                 order.setStatus("Завершена");
-                bot.updateZStatus(order.getOrderID().intValue(), "Заявка отменена.", "❎Отмена заявки №" + order.getOrderID() + " успешно подтверждена менеджером.");
+                order.setAccurateStatus("Завершена");
+                OrderLocations.removeOrderFromAll(order.getOrderID());
+                OrderLocations.remAllCurrentOrderID(order.getOrderID());
+                bot.updateZStatus(order.getOrderID().intValue(), "Заявка отменена.", "❎Отмена заявки №" + order.getOrderID() + " успешно подтверждена менеджером.", true);
                 bot.editMsg(zChannelID, msgid, InlineButtons.getButText("Заявка отменена. Отменил: " + user.getUserName()));
                 bot.deleteMsg(zChannelID, order.getMainMsgID());
                 new Timer().schedule(new TimerTask() {
@@ -254,7 +259,7 @@ public class PersonalCallbackHandler {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Вы отклонили отмену заявки."));
                 order.addDescriptions("OTKLON_CANCEL");
                 order.addDescriptions("OTKLON_CANCEL-" + user.getUserName());
-                bot.updateZStatus(order.getOrderID().intValue(), "Отмена заявки отклонена.", "❌Отмена заявки №" + order.getOrderID() + " не была подтверждена менеджером.");
+                bot.updateZStatus(order.getOrderID().intValue(), "Отмена заявки отклонена.", "❌Отмена заявки №" + order.getOrderID() + " не была подтверждена менеджером.", true);
                 bot.editMsg(zChannelID, msgid, InlineButtons.getButText("Отмена заявки отклонена. Отклонил: " + user.getUserName()));
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -345,7 +350,7 @@ public class PersonalCallbackHandler {
         if (data.startsWith("#CANCELORDER")) {
             Order order = new Order(data.split("/")[1]);
             order.addDescriptions("CANCEL|" + user.getUID());
-            bot.updateZStatus(order.getOrderID().intValue(), "Заявка отменена", "Менеджер отменил Вашу заявку, для уточнения деталей свяжитесь с менеджером.");
+            bot.updateZStatus(order.getOrderID().intValue(), "Заявка отменена", "Менеджер отменил Вашу заявку, для уточнения деталей свяжитесь с менеджером.", true);
             order.setStatus("Завершена|Отменена");
             try {
                 for (Long taskID : order.getAllTasksID()) {
@@ -430,7 +435,7 @@ public class PersonalCallbackHandler {
                     this.cancel();
                 }
             }, 5000);
-            bot.updateZStatus(order.getOrderID().intValue(), "Заявка завершена", "Заявка №" + order.getOrderID() + " завершена.");
+            bot.updateZStatus(order.getOrderID().intValue(), "Заявка завершена", "Заявка №" + order.getOrderID() + " завершена.", true);
             bot.sendToLogChanel("Пользователь " + DataBase.getPerFields(order.getUID(), "name") + " принудительно завершил заявку №" + order.getOrderID() + "!");
             OrderLocations.remAllCurrentOrderID(order.getOrderID());
             OrderLocations.removeOrderFromAll(order.getOrderID());
@@ -450,17 +455,18 @@ public class PersonalCallbackHandler {
             Order order = new Order(data.split("/")[2]);
             String status = data.split("/")[1].replace("_", " ").toLowerCase();
             if (status.equals("сбор в пути") || status.equals("3")) {
-                bot.updateZStatus(order.getOrderID().intValue(), "Курьер выехал к Вам (Сбор)", "Курьер выехал к Вам забрать картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.");
+                bot.updateZStatus(order.getOrderID().intValue(), "Курьер выехал к Вам (Сбор)", "Курьер выехал к Вам забрать картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.", false);
                 order.setAccurateStatus("Сбор");
                 for (Long subOrderID : order.getAllSubOrdersID()) {
                     SubOrder subOrder = new SubOrder(subOrderID);
                     subOrder.setStatus("Сбор");
                 }
+                OrderLocations.removeOrderFromAll(order.getOrderID());
                 OrderLocations.addOrderInTheWay(order.getOrderID());
                 OrderLocations.addOrdersInCollection(order.getOrderID());
             }
             if (status.equals("заявка в работе") || status.equals("4")) {
-                bot.updateZStatus(order.getOrderID().intValue(), "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.");
+                bot.updateZStatus(order.getOrderID().intValue(), "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.", false);
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Статус заявки изменён."));
                 try {
                     bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
@@ -494,8 +500,7 @@ public class PersonalCallbackHandler {
                     }
                 } catch (Exception ignore) {
                 }
-                OrderLocations.remOrderInTheWay(order.getOrderID());
-                OrderLocations.remOrdersInCollection(order.getOrderID());
+                OrderLocations.removeOrderFromAll(order.getOrderID());
                 OrderLocations.addOrderInOffice(order.getOrderID());
                 OrderLocations.addOrdersInWork(order.getOrderID());
                 for (Long subOrderID : order.getAllSubOrdersID())
@@ -505,7 +510,7 @@ public class PersonalCallbackHandler {
             if (status.equals("доставка в пути") || status.equals("5")) {
                 Long workID = order.getWorkID();
                 if (workID != 0) {
-                    OrderLocations.remReadyToWay(order.getOrderID());
+                    OrderLocations.removeOrderFromAll(order.getOrderID());
                     OrderLocations.addOrderInTheWay(order.getOrderID());
                     OrderLocations.addOrdersInDelivery(order.getOrderID());
                     try {
@@ -519,7 +524,7 @@ public class PersonalCallbackHandler {
                     } catch (Exception ignore) {
                     }
                     order.setAccurateStatus("Доставка");
-                    bot.updateZStatus(order.getOrderID().intValue(), "Курьер выехал к Вам (Доставка)", "Курьер везет Вам картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.");
+                    bot.updateZStatus(order.getOrderID().intValue(), "Курьер выехал к Вам (Доставка)", "Курьер везет Вам картридж/принтер, будет у Вас в течении 1-2 часов. Пожалуйста ожидайте.", false);
                     for (Long subOrderID : order.getAllSubOrdersID()) {
                         SubOrder subOrder = new SubOrder(subOrderID);
                         subOrder.setStatus("Доставка");
@@ -594,20 +599,23 @@ public class PersonalCallbackHandler {
     public Boolean handleCreateQR(User user, String data, Integer msgid, String cbqID, String msgText) {
         if (data.startsWith("#CreateQR")) {
             Order order = new Order(data.split("/")[1]);
-            Cartridge cartridge = new Cartridge(DataBase.getNextCartridgeID());
-            cartridge.create(order.getModel(), order.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
-            new User(cartridge.getOwnersID().get(0)).addCartridgeID(cartridge.getID());
             order.addDescriptions("QR-CREATE");
-            bot.editMsg(zChannelID, msgid,InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
-            try {
-                bot.sendDocument(new SendDocument().setNewDocument(DarkQRWriter.createQRCode(cartridge.getID()))
-                        .setChatId(user.getTID()).setCaption("QR для картриджа №" + cartridge.getID() + " успешно создан."
-                                + "\nКлиент: " + new User(cartridge.getOwnersID().get(0)).getUserPhone()
-                                + "\nМодель картриджа: " + cartridge.getModel()
-                                + "\nМестонахождение: " + cartridge.getAddress()
-                                + "\nQR-код для картриджа №" + cartridge.getID()));
-            } catch (Exception e) {
-                e.printStackTrace();
+            bot.editMsg(zChannelID, msgid, InlineButtons.getObrobotkaTrueButton(order.getOrderID().intValue()));
+            for (Long subOrderID : order.getAllSubOrdersID()) {
+                try {
+                    SubOrder subOrder = new SubOrder(subOrderID);
+                Cartridge cartridge = new Cartridge(DataBase.getNextCartridgeID());
+                cartridge.create(subOrder.getModel(), subOrder.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
+                new User(order.getUID(), true).addCartridgeID(cartridge.getID());
+                    bot.sendDocument(new SendDocument().setNewDocument(DarkQRWriter.createQRCode(cartridge.getID()))
+                            .setChatId(user.getTID()).setCaption("QR код для картриджа №" + cartridge.getID() + " успешно создан."
+                                    + "\nКлиент: " + new User(order.getUID()).getUserPhone()
+                                    + "\nМодель картриджа: " + cartridge.getModel()
+                                    + "\nМестонахождение: " + cartridge.getAddress()
+                                    + "\n№ Картриджа: " + cartridge.getID()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             return true;
         }
@@ -657,7 +665,7 @@ public class PersonalCallbackHandler {
                 if (!subOrdersForcedCancelReconcile.isEmpty()) {
                     try {
                         bot.handVosst(bot.u.objectToString(subOrdersForcedCancelReconcile, "/"), "Telegram", "CANCEL");
-                        bot.updateZStatus(orderID.intValue(), "Отказ от восстановления", "Вы отказались от восстановления картриджа(ей) " + subOrdersModelsForcedCancelReconcile + " через телефон/месседжер.");
+                        bot.updateZStatus(orderID.intValue(), "Отказ от восстановления", "Вы отказались от восстановления картриджа(ей) " + subOrdersModelsForcedCancelReconcile + " через телефон/месседжер.", false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -682,7 +690,7 @@ public class PersonalCallbackHandler {
                 if (!subOrdersForcedReconcile.isEmpty()) {
                     try {
                         bot.handVosst(bot.u.objectToString(subOrdersForcedReconcile, "/"), "Telegram", "SOGLASOVANO");
-                        bot.updateZStatus(orderID.intValue(), "Восстановление согласовано", "Вы подтвердили восстановления картриджа(ей) " + subOrdersModelsForcedReconcile + " через телефон/месседжер.");
+                        bot.updateZStatus(orderID.intValue(), "Восстановление согласовано", "Вы подтвердили восстановления картриджа(ей) " + subOrdersModelsForcedReconcile + " через телефон/месседжер.", false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

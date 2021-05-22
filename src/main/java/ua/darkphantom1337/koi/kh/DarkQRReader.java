@@ -19,20 +19,8 @@ import java.io.IOException;
  */
 public class DarkQRReader {
 
-    /**
-     * Bar code encoding
-     *
-     * @param contents
-     * @param width
-     * @param height
-     * @param imgPath
-     */
     public static void encode(String contents, int width, int height, String imgPath) {
-        int codeWidth = 3 + // start guard
-                (7 * 6) + // left bars
-                5 + // middle guard
-                (7 * 6) + // right bars
-                3; // end guard
+        int codeWidth = 3 + (7 * 6) + 5 + (7 * 6) + 3;
         codeWidth = Math.max(codeWidth, width);
         try {
             BitMatrix bitMatrix = new MultiFormatWriter().encode(contents, BarcodeFormat.EAN_8, codeWidth, height, null);
@@ -42,19 +30,12 @@ public class DarkQRReader {
         }
     }
 
-    /**
-     * Barcode decoding
-     *
-     * @param imgPath
-     * @return String
-     */
     public static String decode(String imgPath) throws IOException, NotFoundException {
         BufferedImage image = null;
         Result result = null;
         image = ImageIO.read(new File(imgPath));
-        if (image == null) {
+        if (image == null)
             System.out.println("the decode image may be not exit.");
-        }
         LuminanceSource source = new BufferedImageLuminanceSource(image);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
         result = new MultiFormatReader().decode(bitmap, null);
@@ -63,18 +44,14 @@ public class DarkQRReader {
 
     public static String decodeFromImage(BufferedImage image) throws IOException, NotFoundException {
         Result result = null;
-        if (image == null) {
+        if (image == null)
             System.out.println("the decode image may be not exit.");
-        }
         LuminanceSource source = new BufferedImageLuminanceSource(image);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
         result = new MultiFormatReader().decode(bitmap, null);
         return result.getText();
     }
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) throws IOException, WriterException, NotFoundException {
         String imgPath = "C:\\Users\\DarkPhantom1337\\Desktop\\ForTest\\test34.jpg";
         String contents = "0001337";

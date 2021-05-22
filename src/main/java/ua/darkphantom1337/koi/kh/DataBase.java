@@ -24,7 +24,7 @@ public class DataBase {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(
-                    "jdbc:mysql://" + url + "/" + dbName + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=UTC", user, pass);
+                    "jdbc:mysql://" + url + "/" + dbName + "?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=UTC&sessionVariables=wait_timeout=600", user, pass);
             Statement statmt = conn.createStatement();
             statmt.execute(
                     "CREATE TABLE IF NOT EXISTS `users` (`id` int PRIMARY KEY,"
@@ -62,6 +62,23 @@ public class DataBase {
                             + "`currentMessagesID` text,"
                             + "`registerDate` varchar(32),"
                             + "`registerTime` varchar(32))");
+            statmt.execute(
+                    "CREATE TABLE IF NOT EXISTS `referral` (`userID` BIGINT UNSIGNED PRIMARY KEY,"
+                            + "`inviterID` BIGINT UNSIGNED DEFAULT 0,"
+                            + "`invited` BIGINT UNSIGNED DEFAULT 0)");
+            statmt.execute(
+                    "CREATE TABLE IF NOT EXISTS `mailings` (`mailID` BIGINT UNSIGNED PRIMARY KEY,"
+                            + "`message` longtext,"
+                            + "`file_id` text,"
+                            + "`file_type` varchar(64),"
+                            + "`content_type` varchar(128),"
+                            + "`send_type` varchar(64),"
+                            + "`send_date` varchar(32),"
+                            + "`recipientsID` varchar(32),"
+                            + "`messagesID` longtext,"
+                            + "`status` varchar(32),"
+                            + "`creatingDate` varchar(32),"
+                            + "`creatingTime` varchar(32))");
             statmt.execute(
                     "CREATE TABLE IF NOT EXISTS `tasks` (`taskID` BIGINT UNSIGNED PRIMARY KEY,"
                             + "`courierID` BIGINT UNSIGNED,"
@@ -1722,6 +1739,10 @@ public class DataBase {
         return getNextID(34);
     }
 
+    public static Long getNextMailID() {
+        return getNextID(35);
+    }
+
 
     public static Long getNextID(Integer id_id) {
         Long id = (long) 0;
@@ -1775,6 +1796,27 @@ public class DataBase {
                 return name;
             }
             e.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static List<Object> getTableFieldsWhere(String tableName, String whereFieldName, String whereFieldValue, String needFieldName) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement("SELECT "+needFieldName+" FROM " + tableName + " WHERE " + whereFieldName + " = ?;");
+        ) {
+            preparedStatement.setString(1, whereFieldValue);
+            ResultSet e = preparedStatement.executeQuery();
+            List<Object> values = new ArrayList<>();
+            while(e.next()){
+                Object result = e.getObject(needFieldName);
+                System.out.println(String.valueOf(result) + "лол");
+                if (result != null)
+                    values.add(result);
+            }
+            preparedStatement.close();
+            e.close();
+            return values;
         } catch (Exception e) {
             e.printStackTrace();
         }

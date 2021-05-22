@@ -8,7 +8,11 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.DataBase;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
+import ua.darkphantom1337.koi.kh.entitys.Mail;
 import ua.darkphantom1337.koi.kh.entitys.User;
+import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
+import ua.darkphantom1337.koi.kh.entitys.mails.FileType;
+import ua.darkphantom1337.koi.kh.entitys.mails.MailStatus;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -26,9 +30,9 @@ public class UserGlobalHandler {
         if (msg.hasText())
             if (this.handleUserTextMessage(user, chatID, messageID, msg.getText(), msg)) return true;
         if (msg.hasDocument())
-            if (this.handleUserDocumentMessage(user, chatID, messageID, msg.getDocument())) return true;
+            if (this.handleUserDocumentMessage(user, chatID, messageID, msg, msg.getDocument())) return true;
         if (msg.hasPhoto())
-            if (this.handleUserPhotoMessage(user, chatID, messageID, msg.getPhoto())) return true;
+            if (this.handleUserPhotoMessage(user, chatID, messageID, msg, msg.getPhoto())) return true;
         if (msg.getContact() != null)
             if (this.handleUserContactMessage(user, chatID, messageID, msg.getContact())) return true;
         user.sendMessage("Вы хотите нам что-то сообщить или узнать? Напишите нашему менеджеру ", "mened");
@@ -300,7 +304,9 @@ public class UserGlobalHandler {
             if (vacantion.equals("courier")) ;
             //if (ch.handleTextMessage(user, txt, message_id)) return;
         }
+        if (bot.umh.handleStartMessage(user, text)) return true;
         if (bot.umh.handleUserMenusText(user, text, messageID)) return true;
+        if (bot.umh.handleUserQRNumbersText(user, text, messageID)) return true;
         if (bot.umh.handleUserReklamComm(user, text)) return true;
         if (bot.umh.handleUserName(user, text, msg)) return true;
         if (bot.umh.handleUserCompanyName(user, text, msg)) return true;
@@ -308,11 +314,38 @@ public class UserGlobalHandler {
         if (bot.handZayav(user, msg, text)) return true;
         if (bot.umh.handleUserAdress(user, text, msg)) return true;
         if (bot.umh.handleUserSeeModel(user, text)) return true;
+        if (bot.umh.handleReferralProgram(user, text)) return true;
         if (bot.umh.handlePersonalMsgs(user, text, msg)) return true;
         return false;
     }
 
-    private Boolean handleUserDocumentMessage(User user, Long chatID, Integer messageID, Document document) {
+    private Boolean handleUserDocumentMessage(User user, Long chatID, Integer messageID, Message msg, Document document) {
+        if (user.getUserAction().equals("admin_wait_new_mail")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(DataBase.getNextMailID());
+            bot.ah.admins_current_mail.put(user.getUID(), mail.getMailID());
+            mail.setMailStatus(MailStatus.CREATING);
+            if (msg.getCaption() != null && !msg.getCaption().equals(""))
+                if (document.getMimeType().contains("image")) {
+                    mail.setContentType(ContentType.TEXT_AND_IMAGE);
+                    mail.setFileType(FileType.IMAGE);
+                } else {
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                    mail.setFileType(FileType.PDF);
+                }
+            else if (document.getMimeType().contains("image")) {
+                mail.setContentType(ContentType.IMAGE);
+                mail.setFileType(FileType.IMAGE);
+            } else {
+                mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.PDF);
+            }
+            mail.setMailFileID(document.getFileId());
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/"+mail.getMailID());
+            return true;
+        }
         if (document.getMimeType().contains("image")) {
             try {
                 bot.saveDocument("lastqr" + user.getUID() + ".png", bot.execute(new GetFile().setFileId(document.getFileId())).getFileUrl(bot.getBotToken()));
@@ -325,7 +358,22 @@ public class UserGlobalHandler {
         return false;
     }
 
-    private Boolean handleUserPhotoMessage(User user, Long chatID, Integer messageID, List<PhotoSize> photo) {
+    private Boolean handleUserPhotoMessage(User user, Long chatID, Integer messageID, Message msg, List<PhotoSize> photo) {
+        if (user.getUserAction().equals("admin_wait_new_mail")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(DataBase.getNextMailID());
+            bot.ah.admins_current_mail.put(user.getUID(), mail.getMailID());
+            mail.setMailStatus(MailStatus.CREATING);
+            if (msg.getCaption() != null && !msg.getCaption().equals(""))
+                mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            else mail.setContentType(ContentType.IMAGE);
+            mail.setFileType(FileType.IMAGE);
+            mail.setMailFileID(photo.get(1).getFileId());
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/"+mail.getMailID());
+            return true;
+        }
         try {
             bot.saveDocument("lastqr" + user.getUID() + ".png", bot.execute(new GetFile().setFileId(photo.get(1).getFileId())).getFileUrl(bot.getBotToken()));
             return true;

@@ -2,6 +2,8 @@ package ua.darkphantom1337.koi.kh.database;
 
 import ua.darkphantom1337.koi.kh.DataBase;
 
+import java.util.List;
+
 class DarkTable {
 
     private String tableName;
@@ -52,6 +54,10 @@ class DarkTable {
 
     protected void setLong(String fieldName, Long fieldValue){
         DataBase.setTableLField(tableName, fieldID, idFieldName, fieldName,fieldValue);
+    }
+
+    public List<Object> getValuesWhere(String whereName, String whereValue, String needFieldName){
+        return DataBase.getTableFieldsWhere(tableName, whereName, whereValue,needFieldName);
     }
 
     public  Boolean isSetRecord(){

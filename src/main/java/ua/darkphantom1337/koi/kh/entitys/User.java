@@ -78,6 +78,12 @@ public class User {
         return action;
     }
 
+
+    public void setBirthday(String date){
+        DataBase.setUsFields(user_id, "dr", date);
+    }
+
+
     public void setName(String name){
         DataBase.setUsFields(user_id, "name", name);
     }
@@ -133,6 +139,66 @@ public class User {
         List<Long> cartridges = getCartridgesID();
         cartridges.remove(cartridge_id);
         setCartridgesID(cartridges);
+    }
+
+    public List<String> getModels(){
+        String data = DataBase.getUsFileds(user_id,"models");
+        if (data == null || data.equals("") || data.equals(" "))
+            return new ArrayList<String>();
+        return new ArrayList<String>(Arrays.asList(data.split(";")));
+    }
+
+    public void setModels(List<String> models){
+        DataBase.setUsFields(user_id, "models", Bot.bot.u.objectToString(models,";"));
+    }
+
+    public void addModel(String model){
+        List<String> models = getModels();
+        model = model.replace(";",":");
+        if (!models.contains(model)) {
+            if (models.size() >= 6)
+                models.remove(0);
+            models.add(0,model);
+            setModels(models);
+        } else {
+            models.remove(model);
+            models.add(0,model);
+        }
+    }
+    public void remModel(String model){
+        List<String> models = getModels();
+        model = model.replace(";",":");
+        models.remove(model);
+        setModels(models);
+    }
+
+
+    public List<String> getModelsRem(){
+        String data = DataBase.getUsFileds(user_id,"models_rem");
+        if (data == null || data.equals("") || data.equals(" "))
+            return new ArrayList<String>();
+        return new ArrayList<String>(Arrays.asList(data.split(";")));
+    }
+
+    public void setModelsRem(List<String> models){
+        DataBase.setUsFields(user_id, "models_rem", Bot.bot.u.objectToString(models,";"));
+    }
+
+    public void addModelRem(String model){
+        List<String> models = getModelsRem();
+        model = model.replace(";",":");
+        if (!models.contains(model)) {
+            if (models.size() >= 6)
+                models.remove(6);
+            models.add(model);
+            setModelsRem(models);
+        }
+    }
+    public void remModelRem(String model){
+        List<String> models = getModelsRem();
+        model = model.replace(";",":");
+        models.remove(model);
+        setModelsRem(models);
     }
 
     public Long getID(){

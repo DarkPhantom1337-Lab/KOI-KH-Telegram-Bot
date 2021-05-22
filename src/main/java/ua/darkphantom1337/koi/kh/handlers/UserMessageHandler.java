@@ -1,13 +1,12 @@
 package ua.darkphantom1337.koi.kh.handlers;
 
 import org.telegram.telegrambots.api.objects.Message;
+import sun.reflect.annotation.ExceptionProxy;
 import ua.darkphantom1337.koi.kh.*;
-import ua.darkphantom1337.koi.kh.entitys.Corporation;
-import ua.darkphantom1337.koi.kh.entitys.Order;
-import ua.darkphantom1337.koi.kh.entitys.SubOrder;
-import ua.darkphantom1337.koi.kh.entitys.User;
+import ua.darkphantom1337.koi.kh.entitys.*;
 
 import java.io.IOException;
+import java.sql.Ref;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -237,7 +236,7 @@ public class UserMessageHandler {
             } else {
                 try {
                     order.setAllStatuses(new ArrayList<String>());
-                  order.addStatuses("Заявка на рекламацию подана.");
+                    order.addStatuses("Заявка на рекламацию подана.");
                     bot.sendToChanelReklamaciya((long) nz, order.getTheme() + "\nОписание дефекта: " + text, order.getModel(),
                             DataBase.getUserType(Math.toIntExact(userID)), order.getName(),
                             order.getModel());
@@ -286,11 +285,43 @@ public class UserMessageHandler {
         return false;
     }
 
+    public Boolean handleReferralProgram(User user, String text) {
+        if (text.equals("Реферальная программа")) {
+            bot.sendMsgToUser(user.getTID(), "\uD83D\uDC49 Реферальная программа "
+                     + "\nВаша реферальная ссылка: https://telegram.me/DarkPhantom1337Bot?start=r" + user.getUID()
+                     + "\nВы пригласили " + new Referral(user.getUID()).getInvited() + " пользователей(ля)", "main");
+            return true;
+        }
+        return false;
+    }
+
+    public Boolean handleStartMessage(User user, String text) {
+        if (!text.equals("/start") && text.startsWith("/start") ) {
+            if (text.contains(" ")){
+                String[] spl = text.split(" ");
+                if (spl.length >= 2){
+                    if (spl[1].startsWith("r")){
+                        Long inviterID = 0L;
+                        try {
+                            inviterID = Long.parseLong(spl[1].substring(1));
+                            Referral ref = new Referral(user.getUID());
+                            if (!ref.isSetRecord() || (ref.isSetRecord() && ref.getInviterID() == 0)){
+                                ref.setInviterID(inviterID);
+                                new Referral(inviterID).addInvited(1);
+                            }
+                        } catch (Exception ignored){}
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public Boolean handleUserRateComm(User user, String text, Message msg) {
         Long userID = user.getUID();
         if (bot.user_wait_rate_comm.containsKey(userID) && bot.user_wait_rate_comm.get(userID) == true && bot.user_wait_rate_zn.containsKey(userID) && !bot.menus.contains(text)) {
             Order order = new Order(bot.user_wait_rate_zn.get(userID));
-            order.addDescriptions("Comment|"+text);
+            order.addDescriptions("Comment|" + text);
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -365,7 +396,7 @@ public class UserMessageHandler {
                             user.setUserLastAdress(adr);
                         }
                         if (!adr.equals(txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", "")))
-                            user.setUserAdress( txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""));
+                            user.setUserAdress(txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""));
 
                     } else {
                         user.setUserLastAdress(adr);
@@ -374,10 +405,10 @@ public class UserMessageHandler {
 
                     if (!adr.equals(txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""))) {
                         user.setUserLastAdress(adr);
-                       user.setUserAdress(txt.replaceAll(user.getUserCity() + ",", "").replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""));
+                        user.setUserAdress(txt.replaceAll(user.getUserCity() + ",", "").replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""));
                     }
                     if (user.getUserLastAdres().equals(txt.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ/:\\- ]", ""))) {
-                      user.setUserAdress(user.getUserLastAdres());
+                        user.setUserAdress(user.getUserLastAdres());
                         user.setUserLastAdress(adr);
                     }
                 }
@@ -410,7 +441,8 @@ public class UserMessageHandler {
 
 
     public Boolean handleUserCompanyName(User user, String text, Message msg) {
-        Long userID = user.getUID();;
+        Long userID = user.getUID();
+        ;
         if (bot.user_wait_company_name.containsKey(userID) && bot.user_wait_company_name.get(userID) == true) {
             DataBase.setUsFields(userID, "company_name", text.replaceAll("[^\\da-zA-Zа-яёА-ЯЁ ]", ""));
             bot.user_wait_company_name.remove(userID);
@@ -435,16 +467,16 @@ public class UserMessageHandler {
                 user.setPhone(spl[2]);
                 bot.sendMsgToUser(userID, "\uD83D\uDE0E\uD83D\uDC4C Данные успешно изменены!");
                 if (bot.user_tema.get(userID).equals("Заправка картриджа"))
-                    handleUserNewOrder( user, true);
-                else handleUserNewOrder( user, false);
+                    handleUserNewOrder(user, true);
+                else handleUserNewOrder(user, false);
             } else {
-                user.sendMessage( "Пишите через разделитель / !!!", "cancelvvod");
+                user.sendMessage("Пишите через разделитель / !!!", "cancelvvod");
             }
             return true;
         }
         if (user.getUserAction().equals("wait_reconcile_text")) {
             List<Long> selectedSubOrders = UsersData.getSelectedOrdersForReconcile(userID).keySet().stream().collect(Collectors.toList());
-            if (selectedSubOrders.isEmpty()){
+            if (selectedSubOrders.isEmpty()) {
                 user.setUserAction("main");
                 user.sendMessage("❌ Данные о выбранных картриджах больше не актуальны. Повторите процедуру снова. ");
                 return true;
@@ -453,13 +485,13 @@ public class UserMessageHandler {
             String models = "";
             for (Long id : selectedSubOrders)
                 models += new SubOrder(id).getModel() + ";";
-            String texx = "ℹ️Заявка №" +order.getOrderID()
+            String texx = "ℹ️Заявка №" + order.getOrderID()
                     + "\nКартриджи: " + models
-                     + "\n\uD83D\uDC49 "+txt;
+                    + "\n\uD83D\uDC49 " + txt;
             if (order.getTheme().contains("Заправка"))
                 texx += "\n\uD83D\uDC49 Стоимость восстановления включает гарантию на данное восстановление с заправкой и две последующие заправки (детальнее по гарантии можно узнать у менеджера)";
             user.setUserAction("main");
-            bot.sendMsgToUser(msg.getChatId(), texx, "vosst=" + bot.u.objectToString(selectedSubOrders,"/"));
+            bot.sendMsgToUser(msg.getChatId(), texx, "vosst=" + bot.u.objectToString(selectedSubOrders, "/"));
             UsersData.clearSelectedOrdersForReconcile(user.getUID());
             return true;
         }
@@ -489,8 +521,8 @@ public class UserMessageHandler {
                                 + current_statuses, "reklamaciya/" + nz + "/" + status);
                     }
                 }
-                if (curr == 0){
-                    bot.sendMsgToUser(user.getTID(), "Актуальных заявок от Вас на данный момент нету!","main");
+                if (curr == 0) {
+                    bot.sendMsgToUser(user.getTID(), "Актуальных заявок от Вас на данный момент нету!", "main");
                 }
             }
             return true;
@@ -521,8 +553,8 @@ public class UserMessageHandler {
                 continue;
             }
         }
-        if (curr == 0){
-            bot.sendMsgToUser(user.getTID(), "Актуальных заявок от Вас на данный момент нету!","main");
+        if (curr == 0) {
+            bot.sendMsgToUser(user.getTID(), "Актуальных заявок от Вас на данный момент нету!", "main");
         }
         return true;
     }
@@ -581,20 +613,21 @@ public class UserMessageHandler {
     }
 
     public boolean handleUserSeeModel(User user, String text) {
-        Long user_id = user.getUID();;
+        Long user_id = user.getUID();
+        ;
         if (bot.user_wait_semodel.containsKey(user_id)) {
             if (bot.user_stype.get(user_id).equals("Print")) {
                 List<String> all = DataBase.getAllPrices(bot.prnt_model.get(user_id), true, text);
                 if (all.size() == 0) {
-                   user.sendMessage( "Ничего не найдено!", "main");
+                    user.sendMessage("Ничего не найдено!", "main");
                 } else {
                     int i = 1;
                     for (String s : all) {
                         if (i <= 20) {
                             String[] spl = s.split("/");
-                            user.sendMessage( "Модель принтера: " + spl[0] + "\nМодель картриджа: " + spl[1] + "\nЦЕНА ЗАПРАВКИ: " + spl[2], "ost_zmodel/" + spl[3]);
+                            user.sendMessage("Модель принтера: " + spl[0] + "\nМодель картриджа: " + spl[1] + "\nЦЕНА ЗАПРАВКИ: " + spl[2], "ost_zmodel/" + spl[3]);
                         } else {
-                            user.sendMessage( "Пожалуйста повторите попытку, введя более точное значение.", "main");
+                            user.sendMessage("Пожалуйста повторите попытку, введя более точное значение.", "main");
                             return true;
                         }
                         i++;
@@ -608,10 +641,10 @@ public class UserMessageHandler {
                     for (String s : grp.get(key)) {
                         printers += "- " + s + (i <= grp.get(key).size() - 1 ? "\n" : "");
                     }
-                    user.sendMessage( "Модель картриджа: " + key.replaceAll("¦", "/") + "\nПодходит для следующих моделей принтеров: " + printers.replaceAll("¦", "/") + "\nЦЕНА ЗАПРАВКИ: " + (DataBase.getF("price_refill", DataBase.getIdForCart(key.replaceAll("¦", "/"))) == null ? "Уточняйте у менеджера" : DataBase.getF("price_refill", DataBase.getIdForCart(key.replaceAll("¦", "/")))), "ost_kart%" + DataBase.getIdForCart(key.replaceAll("¦", "/")));
+                    user.sendMessage("Модель картриджа: " + key.replaceAll("¦", "/") + "\nПодходит для следующих моделей принтеров: " + printers.replaceAll("¦", "/") + "\nЦЕНА ЗАПРАВКИ: " + (DataBase.getF("price_refill", DataBase.getIdForCart(key.replaceAll("¦", "/"))) == null ? "Уточняйте у менеджера" : DataBase.getF("price_refill", DataBase.getIdForCart(key.replaceAll("¦", "/")))), "ost_zmodel/" + DataBase.getIdForCart(key.replaceAll("¦", "/")));
                 }
             }
-            user.sendMessage( "Если в списке нет Вашей модели, повторите поиск, и введите более подробное название либо свяжитесь с нашим менеджером.", "research_price");
+            user.sendMessage("Если в списке нет Вашей модели, повторите поиск, и введите более подробное название либо свяжитесь с нашим менеджером.", "research_price");
             bot.user_wait_semodel.remove(user_id);
             bot.user_stype.remove(user_id);
             bot.prnt_model.remove(user_id);
@@ -624,14 +657,14 @@ public class UserMessageHandler {
         if (isFill)
             bot.user_tema.put(user.getUID(), "Заправка картриджа");
         else bot.user_tema.put(user.getUID(), "Ремонт принтера");
-        if (DataBase.isPersonal(user.getUID()) && bot.pers_is_z_saved.containsKey(user.getUID()) == false) {
+        if (DataBase.isPersonal(user.getUID()) && !bot.pers_is_z_saved.containsKey(user.getUID())) {
             user.sendMessage(user.getUserName() + ", чтобы оставить заявку от лица другого человека, пожалуйста введите данные в следующем формате:"
                     + "\n Название Компании / Имя Клиента / Номер телефона клиента", "cancelvvod");
-            Bot.admin_data.put(user.getUID(), user.getUserCompanyName() + "//" + user.getUserName() + "//" +user.getUserPhone());
+            Bot.admin_data.put(user.getUID(), user.getUserCompanyName() + "//" + user.getUserName() + "//" + user.getUserPhone());
             Bot.pers_is_z_saved.put(user.getUID(), true);
             return true;
-        } else
-            bot.pers_is_z_saved.remove(user.getUID());
+        }
+        bot.pers_is_z_saved.remove(user.getUID());
         /*if (DataBase.getAllBlackUserId().contains(user.getUID())) {
             user.sendMessage("Извините, но Вам запрещено производить какие-либо действия! Для уточнения деталей напишите менеджеру...", "mened");
             return true;
@@ -659,7 +692,41 @@ public class UserMessageHandler {
         return true;
     }
 
-    public boolean handleUserMenusText(User user, String text, Integer messageID){
+    public boolean handleUserQRNumbersText(User user, String text, Integer messageID) {
+        if (user.getUserAction().equals("user_wait_qr")) {
+            List<Long> numbers = new ArrayList<Long>();
+            List<Long> nc = user.getCartridgesID();
+            for (String s : text.split(";")) {
+                try {
+                    Long a = Long.parseLong(s);
+                    if (nc.contains(a))
+                        numbers.add(Long.parseLong(s));
+                    else
+                        user.sendMessage("Картридж с номером " + a + " не принадлежит Вам.");
+                } catch (Exception e) {
+                    user.sendMessage(s + " не является числом");
+                }
+            }
+            if (numbers.isEmpty()) {
+                user.sendMessage("Вы не указали ни одного числа, повторите попытку либо вернитесь в главное меню!");
+            } else {
+                bot.user_tema.put(user.getUID(), "Заправка картриджа");
+                UsersData.remAllSelectedOrderModel(user.getUID());
+                for (Long cartridgeID : numbers) {
+                    Cartridge car = new Cartridge(cartridgeID);
+                    UsersData.addOrderModel(user.getUID(), car.getModel());
+                    UsersData.addSelectedOrderModel(user.getUID(), car.getModel());
+                }
+                user.sendMessage("Проверьте правильность ввода: "
+                        + "\nВаш адрес: " + DataBase.getUsFileds(user.getUID(), "adress")
+                        + "\nВаша модель: " + bot.u.stringToString(UsersData.getSelectedOrderModels(user.getUID()), ";"), "prov_info");
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean handleUserMenusText(User user, String text, Integer messageID) {
         switch (text) {
             case "Оставить заявку на заправку":
                 if (!DataBase.isSetMainInfo(user.getUID())) {
@@ -706,11 +773,12 @@ public class UserMessageHandler {
             case "Завершённые заявки":
                 if (bot.umh.handleEndOrdersHystory(user)) return true;
             case "Написать менеджеру":
-                user.sendMessage( "Нажмите на кнопку ниже чтобы перейти в чат с нашим менеджером", "mened");
+                user.sendMessage("Нажмите на кнопку ниже чтобы перейти в чат с нашим менеджером", "mened");
                 return true;
             case "Главное меню":
             case "Вернуться в главное меню":
-                user.sendMessage( "Вы перешли в главное меню", "main");
+                user.setUserAction("main");
+                user.sendMessage("Вы перешли в главное меню", "main");
                 if (DataBase.isPersonal(user.getUID()))
                     for (Long smsgID : bot.mh.getAllSendedMsgsID(user.getUID()))
                         try {
@@ -728,13 +796,14 @@ public class UserMessageHandler {
                 bot.sendMsgToUser(user.getTID(), "Данные заявки успешно заполнены!", "backtomain");
                 bot.user_wait_adress.remove(user.getUID());
                 bot.user_wait_model.remove(user.getUID());
-                user.sendMessage( "Проверьте правильность ввода: "
+                user.sendMessage("Проверьте правильность ввода: "
                         + "\nВаш адрес: " + DataBase.getUsFileds(user.getUID(), "adress")
                         + "\nВаша модель: " + bot.u.stringToString(UsersData.getSelectedOrderModels(user.getUID()), ";"), "prov_info");
                 return true;
             case "Используя QR-код":
                 user.setUserAction("user_wait_qr");
-                bot.sendMsgToUser(user.getTID(), user.getUserName() + ", сфотографируйте QR-код на вашем картридже/принтере и отправьте мне, либо отправьте мне цифры написанные под QR кодом и я автоматически сформирую заявку :-) ", "backtomain");
+                bot.sendMsgToUser(user.getTID(), user.getUserName() + ", сфотографируйте QR-код на вашем картридже/принтере и отправьте мне, либо отправьте мне цифры написанные под QR кодом и я автоматически сформирую заявку :-) "
+                        + "\uD83D\uDC49 Используйте разделитель ; чтобы указать несколько номеров картриджей. Например: 1;2;3", "backtomain");
                 return true;
             case "Заполняя форму":
                 if (bot.user_tema.containsKey(user.getUID())) {

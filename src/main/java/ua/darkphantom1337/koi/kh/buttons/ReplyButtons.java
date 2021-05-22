@@ -162,6 +162,22 @@ public class ReplyButtons {
         return replyKeyboardMarkup;
     }
 
+    public static ReplyKeyboardMarkup addAdminMailMenu() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup().setSelective(true).setResizeKeyboard(true).setOneTimeKeyboard(false);
+        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
+        KeyboardRow oneline = new KeyboardRow(), twoline = new KeyboardRow(), thrline = new KeyboardRow();
+        oneline.add(new KeyboardButton("Создать рассылку"));
+        twoline.add(new KeyboardButton("Запланированные"));
+        twoline.add(new KeyboardButton("Не завершённые"));
+        twoline.add(new KeyboardButton("Ожидают старта"));
+        thrline.add(new KeyboardButton("Вернуться меню администратора"));
+        keyboard.add(oneline);
+        keyboard.add(twoline);
+        keyboard.add(thrline);
+        replyKeyboardMarkup.setKeyboard(keyboard);
+        return replyKeyboardMarkup;
+    }
+
     public static ReplyKeyboardMarkup addPersonalControlMenu() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup().setSelective(true).setResizeKeyboard(true).setOneTimeKeyboard(false);
         List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
@@ -426,6 +442,7 @@ public class ReplyButtons {
 
 
     public static ReplyKeyboardMarkup addModelMenu(User user,Long id) {
+        System.out.println(user.getUID() + "add model menu");
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup().setSelective(true).setResizeKeyboard(true).setOneTimeKeyboard(false);
         List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
         KeyboardRow one = new KeyboardRow(), two = new KeyboardRow(), thr = new KeyboardRow(), fh = new KeyboardRow();
@@ -472,7 +489,21 @@ public class ReplyButtons {
             replyKeyboardMarkup.setKeyboard(keyboard);
             return replyKeyboardMarkup;
         } else {
-            if (lastmodel[0].equals("Не указано")) {
+            List<String> models = new ArrayList<String>();
+            if (Bot.bot.user_tema.get(user.getUID()).equals("Заправка картриджа"))
+                models = user.getModels();
+            else
+                models = user.getModelsRem();
+            int addd = 1;
+            for (String model : models){
+                if (addd <=3)
+                    one.add(model);
+                else two.add(model);
+                addd++;
+            }
+            replyKeyboardMarkup.setKeyboard(keyboard);
+            return replyKeyboardMarkup;
+            /*if (lastmodel[0].equals("Не указано")) {
                 one.add(new KeyboardButton("Главное меню"));
                 keyboard.add(one);
                 replyKeyboardMarkup.setKeyboard(keyboard);
@@ -511,9 +542,9 @@ public class ReplyButtons {
                 keyboard.add(two);
                 replyKeyboardMarkup.setKeyboard(keyboard);
                 return replyKeyboardMarkup;
-            }
+            }*/
         }
-        return replyKeyboardMarkup;
+        //return replyKeyboardMarkup;
     }
 
 
