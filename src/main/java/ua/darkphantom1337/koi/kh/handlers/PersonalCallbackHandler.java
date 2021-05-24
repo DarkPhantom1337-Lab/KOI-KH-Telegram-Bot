@@ -10,6 +10,7 @@ import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.qr.DarkQRWriter;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -316,7 +317,7 @@ public class PersonalCallbackHandler {
             for (String subOrderID : data.split("=")[1].split("/"))
                 new SubOrder(subOrderID).setStatus("Ожидает согласования...");
             bot.updateMainOrderMessage(order.getOrderID());
-          //  UsersData.clearSelectedOrdersForReconcile(user.getUID());
+            //  UsersData.clearSelectedOrdersForReconcile(user.getUID());
             return true;
         }
         return false;
@@ -606,15 +607,17 @@ public class PersonalCallbackHandler {
             for (Long subOrderID : order.getAllSubOrdersID()) {
                 try {
                     SubOrder subOrder = new SubOrder(subOrderID);
-                Cartridge cartridge = new Cartridge(DataBase.getNextCartridgeID());
-                cartridge.create(subOrder.getModel(), subOrder.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
-                new User(order.getUID(), true).addCartridgeID(cartridge.getID());
-                    bot.sendDocument(new SendDocument().setNewDocument(DarkQRWriter.createQRCode(cartridge.getID()))
+                    Cartridge cartridge = new Cartridge(DataBase.getNextCartridgeID());
+                    cartridge.create(subOrder.getModel(), subOrder.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
+                    File file = DarkQRWriter.createQRCode(cartridge.getID());
+                    new User(order.getUID(), true).addCartridgeID(cartridge.getID());
+                    bot.sendDocument(new SendDocument().setNewDocument(file)
                             .setChatId(user.getTID()).setCaption("QR код для картриджа №" + cartridge.getID() + " успешно создан."
                                     + "\nКлиент: " + new User(order.getUID()).getUserPhone()
                                     + "\nМодель картриджа: " + cartridge.getModel()
                                     + "\nМестонахождение: " + cartridge.getAddress()
                                     + "\n№ Картриджа: " + cartridge.getID()));
+                    file.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -646,7 +649,7 @@ public class PersonalCallbackHandler {
                 List<Long> subOrdersForcedCancelReconcile = UsersData.getSelectetSubOrderFilterAnswer(user.getUID(), UsersData.ReconcileAnswer.ForcedCancelRecovery);
                 List<Long> subOrdersReconcile = UsersData.getSelectetSubOrderFilterAnswer(user.getUID(), UsersData.ReconcileAnswer.Reconcile);
 
-                String subOrdersModelsForcedCancelReconcile = "",subOrdersModelsForcedReconcile = "",subOrdersModelsReconcile = "";
+                String subOrdersModelsForcedCancelReconcile = "", subOrdersModelsForcedReconcile = "", subOrdersModelsReconcile = "";
 
                 /**
                  * ----------------- Reconcile CANCEL FORCED
@@ -717,16 +720,16 @@ public class PersonalCallbackHandler {
                             e.printStackTrace();
                         }
                     }
-                } else             UsersData.clearSelectedOrdersForReconcile(user.getUID());
+                } else UsersData.clearSelectedOrdersForReconcile(user.getUID());
 
                 user.sendMessage(text);
                 if (!subOrdersReconcile.isEmpty()) {
                     user.setUserAction("wait_reconcile_text");
-                    user.sendMessage("\uD83D\uDC49 " +user.getUserName() + ", напишите ТЕКСТ согласования и отправьте мне :-)");
+                    user.sendMessage("\uD83D\uDC49 " + user.getUserName() + ", напишите ТЕКСТ согласования и отправьте мне :-)");
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Напишите текст согласования").setShowAlert(true));
                 }
                 //UsersData.clearSelectedOrdersForReconcile(user.getUID());
-               return true;
+                return true;
             } catch (Exception exp) {
                 exp.printStackTrace();
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Ошибка! Data: " + data + "\nОбратитесь к DarkPhantom1337").setShowAlert(true));
