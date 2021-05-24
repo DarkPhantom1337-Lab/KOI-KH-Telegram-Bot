@@ -305,6 +305,7 @@ public class UserMessageHandler {
                             inviterID = Long.parseLong(spl[1].substring(1));
                             Referral ref = new Referral(user.getUID());
                             if (!ref.isSetRecord() || (ref.isSetRecord() && ref.getInviterID() == 0)){
+                              //  if (D)
                                 ref.setInviterID(inviterID);
                                 new Referral(inviterID).addInvited(1);
                             }

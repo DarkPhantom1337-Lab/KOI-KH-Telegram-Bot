@@ -8,11 +8,8 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
-import ua.darkphantom1337.koi.kh.entitys.mails.Mail;
+import ua.darkphantom1337.koi.kh.entitys.mails.*;
 import ua.darkphantom1337.koi.kh.entitys.User;
-import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
-import ua.darkphantom1337.koi.kh.entitys.mails.FileType;
-import ua.darkphantom1337.koi.kh.entitys.mails.MailStatus;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -33,6 +30,8 @@ public class UserGlobalHandler {
             if (this.handleUserDocumentMessage(user, chatID, messageID, msg, msg.getDocument())) return true;
         if (msg.hasPhoto())
             if (this.handleUserPhotoMessage(user, chatID, messageID, msg, msg.getPhoto())) return true;
+        if (msg.getVideo() != null)
+            if (this.handleUserVideoMessage(user, chatID, messageID, msg, msg.getVideo())) return true;
         if (msg.getContact() != null)
             if (this.handleUserContactMessage(user, chatID, messageID, msg.getContact())) return true;
         user.sendMessage("Вы хотите нам что-то сообщить или узнать? Напишите нашему менеджеру ", "mened");
@@ -73,6 +72,7 @@ public class UserGlobalHandler {
             if (bot.uch.handleSaveZayav(user, data, msgid, cbqid)) return true;
             if (bot.uch.handleReklamaciya(user, data, msgid, cbqid)) return true;
             if (bot.uch.handleCancelZayavka(user, data, msgid, cbqid)) return true;
+            if (bot.uch.handleUpdateStatus(user, data, msgid, cbqid)) return true;
             if (data.contains("#PrintModel")) {
                 String przv = data.split("/")[1];
                 bot.prnt_model.put(user.getUID(), przv);
@@ -294,6 +294,7 @@ public class UserGlobalHandler {
     }
 
     private Boolean handleUserTextMessage(User user, Long chatID, Integer messageID, String text, Message msg) {
+        if (bot.umh.handleStartMessage(user, text)) return true;
         if (bot.umh.checkIsRegister(user, text)) return true;
         if (DataBase.isPersonal(user.getUID())) {
             String vacantion = DataBase.getPerFields(user.getUID(), "v_id");
@@ -304,7 +305,6 @@ public class UserGlobalHandler {
             if (vacantion.equals("courier")) ;
             //if (ch.handleTextMessage(user, txt, message_id)) return;
         }
-        if (bot.umh.handleStartMessage(user, text)) return true;
         if (bot.umh.handleUserMenusText(user, text, messageID)) return true;
         if (bot.umh.handleUserQRNumbersText(user, text, messageID)) return true;
         if (bot.umh.handleUserReklamComm(user, text)) return true;
@@ -323,27 +323,97 @@ public class UserGlobalHandler {
         if (user.getUserAction().equals("admin_wait_new_mail")) {
             user.setUserAction("main");
             Mail mail = new Mail(DataBase.getNextMailID());
+            System.out.println(document.getMimeType());
             bot.ah.admins_current_mail.put(user.getUID(), mail.getMailID());
             mail.setMailStatus(MailStatus.CREATING);
-            if (msg.getCaption() != null && !msg.getCaption().equals(""))
-                if (document.getMimeType().contains("image")) {
+            Boolean hasCaption = (msg.getCaption() != null && !msg.getCaption().equals(""));
+            if (hasCaption)
+                mail.setMailMessage(msg.getCaption());
+            String mimeType = document.getMimeType();
+            if (mimeType.contains("image/gif")) {
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_GIF);
+                else
+                    mail.setFileType(FileType.GIF);
+            } else if (mimeType.contains("image")) {
+                if (hasCaption)
                     mail.setContentType(ContentType.TEXT_AND_IMAGE);
+                else
                     mail.setFileType(FileType.IMAGE);
-                } else {
+            } else if (mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
+                if (hasCaption)
                     mail.setContentType(ContentType.TEXT_AND_FILE);
-                    mail.setFileType(FileType.PDF);
-                }
-            else if (document.getMimeType().contains("image")) {
-                mail.setContentType(ContentType.IMAGE);
-                mail.setFileType(FileType.IMAGE);
-            } else {
-                mail.setContentType(ContentType.FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.WORD);
+
+            }else if (mimeType.equals("application/msword")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.OLD_WORD);
+            }
+            else if (mimeType.contains("video")) {
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_VIDEO);
+                else
+                    mail.setContentType(ContentType.VIDEO);
+                mail.setFileType(FileType.VIDEO);
+            } else if (mimeType.equals("application/pdf")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
                 mail.setFileType(FileType.PDF);
+            } else if(mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.EXCEL);
+            } else if (mimeType.equals("application/vnd.ms-excel")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.EXCEL);
+            } else if (mimeType.equals("application/vnd.ms-powerpoint")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.OLD_POWERPOINT);
+            } else if (mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.POWERPOINT);
+            } else if (mimeType.equals("text/plain")){
+                if (hasCaption)
+                    mail.setContentType(ContentType.TEXT_AND_FILE);
+                else
+                    mail.setContentType(ContentType.FILE);
+                mail.setFileType(FileType.TEXT);
             }
             mail.setMailFileID(document.getFileId());
             mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
             mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
-            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/"+mail.getMailID());
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/" + mail.getMailID());
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_birthday_image")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(0);
+            mail.setMailFileID(document.getFileId());
+            mail.setFileType(FileType.IMAGE);
+            mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            mail.setMailStatus(MailStatus.WAITING_TO_START);
+            mail.setSendType(SendType.PLANNED);
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Поздравительная картинка успешно сохранена.", "ADMIN/Main");
             return true;
         }
         if (document.getMimeType().contains("image")) {
@@ -364,14 +434,28 @@ public class UserGlobalHandler {
             Mail mail = new Mail(DataBase.getNextMailID());
             bot.ah.admins_current_mail.put(user.getUID(), mail.getMailID());
             mail.setMailStatus(MailStatus.CREATING);
-            if (msg.getCaption() != null && !msg.getCaption().equals(""))
+            if (msg.getCaption() != null && !msg.getCaption().equals("")) {
                 mail.setContentType(ContentType.TEXT_AND_IMAGE);
-            else mail.setContentType(ContentType.IMAGE);
+                mail.setMailMessage(msg.getCaption());
+            } else mail.setContentType(ContentType.IMAGE);
             mail.setFileType(FileType.IMAGE);
             mail.setMailFileID(photo.get(1).getFileId());
             mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
             mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
-            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/"+mail.getMailID());
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/" + mail.getMailID());
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_birthday_image")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(0);
+            mail.setMailFileID(photo.get(1).getFileId());
+            mail.setFileType(FileType.IMAGE);
+            mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            mail.setMailStatus(MailStatus.WAITING_TO_START);
+            mail.setSendType(SendType.PLANNED);
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Поздравительная картинка успешно сохранена.", "ADMIN/Main");
             return true;
         }
         try {
@@ -381,6 +465,47 @@ public class UserGlobalHandler {
             telegramApiException.printStackTrace();
         }
         if (bot.uphh.handleUserPhoto(user, new java.io.File("lastqr" + user.getUID() + ".png"))) return true;
+        return false;
+    }
+
+
+    private Boolean handleUserVideoMessage(User user, Long chatID, Integer messageID, Message msg, Video video) {
+        if (user.getUserAction().equals("admin_wait_new_mail")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(DataBase.getNextMailID());
+            bot.ah.admins_current_mail.put(user.getUID(), mail.getMailID());
+            mail.setMailStatus(MailStatus.CREATING);
+            if (msg.getCaption() != null && !msg.getCaption().equals("")) {
+                mail.setContentType(ContentType.TEXT_AND_VIDEO);
+                mail.setMailMessage(msg.getCaption());
+            } else mail.setContentType(ContentType.VIDEO);
+            mail.setFileType(FileType.VIDEO);
+            mail.setMailFileID(video.getFileId());
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " создана! Укажите когда вы хотите отправить данное сообщение:", "ADMIN/Mail/When/" + mail.getMailID());
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_birthday_image")) {
+            user.setUserAction("main");
+            Mail mail = new Mail(0);
+            mail.setMailFileID(video.getFileId());
+            mail.setFileType(FileType.VIDEO);
+            mail.setContentType(ContentType.TEXT_AND_VIDEO);
+            mail.setMailStatus(MailStatus.WAITING_TO_START);
+            mail.setSendType(SendType.PLANNED);
+            mail.setCreatingDate(bot.u.getDate("dd/MM/yyyy"));
+            mail.setCreatingTime(bot.u.getDate("HH:mm:ss"));
+            user.sendMessage("\uD83D\uDC49 Поздравительная картинка успешно сохранена.", "ADMIN/Main");
+            return true;
+        }
+       /* try {
+            bot.saveDocument("lastqr" + user.getUID() + ".mp4", bot.execute(new GetFile().setFileId(video.getFileId())).getFileUrl(bot.getBotToken()));
+            return true;
+        } catch (TelegramApiException telegramApiException) {
+            telegramApiException.printStackTrace();
+        }*//*
+        if (bot.uphh.handleUserPhoto(user, new java.io.File("lastqr" + user.getUID() + ".png"))) return true;*/
         return false;
     }
 

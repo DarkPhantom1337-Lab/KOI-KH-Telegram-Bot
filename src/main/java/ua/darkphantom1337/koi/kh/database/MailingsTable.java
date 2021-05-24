@@ -102,25 +102,25 @@ public class MailingsTable extends DarkTable {
         return getString("messagesID");
     }
 
-    public List<Long> getAllMessagesID() {
+    public List<String> getAllMessagesID() {
         String data = getMessagesID();
         if (data == null || data.equals("null") || data.equals("NULL") || data.equals(""))
-            return new ArrayList<Long>();
-        return Arrays.stream(data.split(";")).mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+            return new ArrayList<String>();
+        return Arrays.stream(data.split(";")).collect(Collectors.toList());
     }
 
-    public void setAllMessagesID(List<Long> recipientsID) {
-        setString("messagesID", Bot.bot.u.objectToString(recipientsID, ";"));
+    public void setAllMessagesID(List<String> messagesID) {
+        setString("messagesID", Bot.bot.u.objectToString(messagesID, ";"));
     }
 
-    public void remMessageID(Long messageID) {
-        List<Long> str = getAllMessagesID();
+    public void remMessageID(String messageID) {
+        List<String> str = getAllMessagesID();
         str.remove(messageID);
         setAllMessagesID(str);
     }
 
-    public void addMessageID(Long messageID) {
-        List<Long> str = getAllMessagesID();
+    public void addMessageID(String messageID) {
+        List<String> str = getAllMessagesID();
         if (!str.contains(messageID)) {
             str.add(messageID);
             setAllMessagesID(str);

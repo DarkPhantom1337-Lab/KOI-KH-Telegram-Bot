@@ -82,7 +82,10 @@ public class User {
     public void setBirthday(String date){
         DataBase.setUsFields(user_id, "dr", date);
     }
-
+    public String getBirthday(){
+        String action = DataBase.getUserStr("dr", user_id);
+        return action == null ? "Не указано" : action;
+    }
 
     public void setName(String name){
         DataBase.setUsFields(user_id, "name", name);

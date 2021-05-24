@@ -162,15 +162,18 @@ public class ReplyButtons {
     public static ReplyKeyboardMarkup addAdminMailMenu() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup().setSelective(true).setResizeKeyboard(true).setOneTimeKeyboard(false);
         List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
-        KeyboardRow oneline = new KeyboardRow(), twoline = new KeyboardRow(), thrline = new KeyboardRow();
+        KeyboardRow oneline = new KeyboardRow(), twoline = new KeyboardRow(), thrline = new KeyboardRow(), th = new KeyboardRow();
         oneline.add(new KeyboardButton("Создать рассылку"));
+        oneline.add(new KeyboardButton("ДР"));
         twoline.add(new KeyboardButton("Запланированные"));
         twoline.add(new KeyboardButton("Не завершённые"));
         twoline.add(new KeyboardButton("Ожидают старта"));
-        thrline.add(new KeyboardButton("Вернуться меню администратора"));
+        thrline.add(new KeyboardButton("Завершённые"));
+        th.add(new KeyboardButton("Вернуться меню администратора"));
         keyboard.add(oneline);
         keyboard.add(twoline);
         keyboard.add(thrline);
+        keyboard.add(th);
         replyKeyboardMarkup.setKeyboard(keyboard);
         return replyKeyboardMarkup;
     }

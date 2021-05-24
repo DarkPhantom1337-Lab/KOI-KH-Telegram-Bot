@@ -28,10 +28,12 @@ import ua.darkphantom1337.koi.kh.sheets.GoogleSheetsAPI;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.URL;
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 public class Bot extends TelegramLongPollingBot {
@@ -136,6 +138,40 @@ public class Bot extends TelegramLongPollingBot {
             sheetsAPI = new GoogleSheetsAPI();
         }
         new MailingsThread().start();
+        new BirthdayThread().start();
+
+
+
+
+      /*  Connection conn = null;
+        String dbName = "master";
+        String serverip="109.86.218.79";
+        String serverport="1433";
+        String url = "jdbc:sqlserver://"+serverip+"\\SQLEXPRESS:"+serverport+";databaseName="+dbName+"";
+        Statement stmt = null;
+        ResultSet result = null;
+        String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        String databaseUserName = "sa";
+        String databasePassword = "koi0385";
+        try {
+            Class.forName(driver).newInstance();
+            conn = DriverManager.getConnection(url, databaseUserName, databasePassword);
+            Bot.bot.info("KOI KAFE SUCCES");
+            stmt = conn.createStatement();
+
+            result = null;
+            String pa,us;
+            result = stmt.executeQuery("select * ");
+
+            while (result.next()) {
+                us=result.getString(1);
+                System.out.println(us+"  ");
+            }
+
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
     }
 
     public static void registerBot() {
@@ -370,8 +406,10 @@ public class Bot extends TelegramLongPollingBot {
             current_statuses += "\n" + status;
         current_statuses += "\n\uD83D\uDC49 Текущий статус: " + longstatus;
         order.addStatuses(bot.u.getDate("dd/MM/YY HH:mm:ss") + " " + smallstatus);
-        if (notify)
+        if (notify) {
             order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
+            editMsg(user.getTID(), order.getStatusMsgID(), InlineButtons.getUpdateStatusButton(order.getOrderID()));
+        }
     }
 
 
@@ -397,6 +435,7 @@ public class Bot extends TelegramLongPollingBot {
                 current_statuses += "\n" + status;
             current_statuses += "\n\uD83D\uDC49 Текущий статус: " + longstatus;
             order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
+            editMsg(user.getTID(), order.getStatusMsgID(), InlineButtons.getUpdateStatusButton(order.getOrderID()));
         }
     }
 
@@ -820,6 +859,10 @@ public class Bot extends TelegramLongPollingBot {
                 }
                 if (subpersmenu.equals("Current")) {
                     s.setReplyMarkup(InlineButtons.getAdminMailCurrentButtons(Long.parseLong(menu.split("/")[3])));
+                    return;
+                }
+                if (subpersmenu.equals("Completed")) {
+                    s.setReplyMarkup(InlineButtons.getAdminMailCompletedButtons(Long.parseLong(menu.split("/")[3])));
                     return;
                 }
                 if (subpersmenu.equals("WaitStarts")) {

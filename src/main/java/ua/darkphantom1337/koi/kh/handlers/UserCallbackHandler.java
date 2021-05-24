@@ -61,6 +61,22 @@ public class UserCallbackHandler {
         return false;
     }
 
+    public Boolean handleUpdateStatus(User user, String data, Integer msgID, String callbackID) {
+        if (data.startsWith("#UPDATEORDERSTATUS")) {
+            Order order = new Order(data.split("/")[1]);
+            if (!order.getStatus().contains("Завершена")) {
+                bot.notifyClient(order.getOrderID());
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callbackID).setText("Обновлено"));
+            } else {
+                bot.notifyClient(order.getOrderID());
+                bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callbackID).setText("Заявка завершена"));
+                bot.editMsg(user.getTID(), msgID, InlineButtons.getButText("Заявка завершена"));
+            }
+            return true;
+        }
+        return false;
+    }
+
     public Boolean handleReklamaciya(User user, String data, Integer msgID, String callbackID) {
         if (data.startsWith("#Reklamaciya")) {
             Order order = new Order(data.split("/")[1]);

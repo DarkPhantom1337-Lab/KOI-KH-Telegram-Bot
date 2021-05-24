@@ -174,11 +174,17 @@ public class InlineButtons {
 
     public static InlineKeyboardMarkup getAdminMailSelectParametersButtons(Long mailID) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<InlineKeyboardButton> r1 = new ArrayList<InlineKeyboardButton>();
+        List<InlineKeyboardButton> r1 = new ArrayList<InlineKeyboardButton>(),r2 = new ArrayList<InlineKeyboardButton>(),r3 = new ArrayList<InlineKeyboardButton>();
         r1.add(new InlineKeyboardButton().setText("Адрес").setCallbackData("#ADMIN/Mails/Parameter/Address/"+mailID));
         r1.add(new InlineKeyboardButton().setText("Картридж").setCallbackData("#ADMIN/Mails/Parameter/Cartridge/"+mailID));
+        r1.add(new InlineKeyboardButton().setText("Телефон").setCallbackData("#ADMIN/Mails/Parameter/Phone/"+mailID));
+        r2.add(new InlineKeyboardButton().setText("Изменить текст").setCallbackData("#ADMIN/Mails/Parameter/ChangeText/"+mailID));
+        r2.add(new InlineKeyboardButton().setText("Изменить дату").setCallbackData("#ADMIN/Mails/Parameter/ChangeDate/"+mailID));
+        r3.add(new InlineKeyboardButton().setText("Вернуться назад").setCallbackData("#ADMIN/Mails/Parameter/BaskStep/"+mailID));
         List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
         rowList.add(r1);
+        rowList.add(r2);
+        rowList.add(r3);
         inlineKeyboardMarkup.setKeyboard(rowList);
         return inlineKeyboardMarkup;
     }
@@ -198,6 +204,16 @@ public class InlineButtons {
         List<InlineKeyboardButton> r1 = new ArrayList<InlineKeyboardButton>();
         r1.add(new InlineKeyboardButton().setText("Запустить").setCallbackData("#ADMIN/Mails/START/"+mailID));
         r1.add(new InlineKeyboardButton().setText("Удалить рассылку").setCallbackData("#ADMIN/Mails/Delete/"+mailID));
+        List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
+        rowList.add(r1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+        return inlineKeyboardMarkup;
+    }
+
+    public static InlineKeyboardMarkup getAdminMailCompletedButtons(Long mailID) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<InlineKeyboardButton> r1 = new ArrayList<InlineKeyboardButton>();
+        r1.add(new InlineKeyboardButton().setText("Отменить рассылку").setCallbackData("#ADMIN/Mails/CANCEL/"+mailID));
         List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
         rowList.add(r1);
         inlineKeyboardMarkup.setKeyboard(rowList);
@@ -537,6 +553,16 @@ public class InlineButtons {
         List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
         rowList.add(keyboardButtonsRow1);
         rowList.add(keyboardButtonsRow2);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+        return inlineKeyboardMarkup;
+    }
+
+    public static InlineKeyboardMarkup getUpdateStatusButton(Long nz) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<InlineKeyboardButton>(), keyboardButtonsRow2 = new ArrayList<InlineKeyboardButton>();
+        keyboardButtonsRow1.add(new InlineKeyboardButton().setText("Обновить статус").setCallbackData("#UPDATEORDERSTATUS/" + nz));
+        List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
+        rowList.add(keyboardButtonsRow1);
         inlineKeyboardMarkup.setKeyboard(rowList);
         return inlineKeyboardMarkup;
     }

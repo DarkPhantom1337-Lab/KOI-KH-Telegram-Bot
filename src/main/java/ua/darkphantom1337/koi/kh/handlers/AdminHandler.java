@@ -15,6 +15,7 @@ import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
 import ua.darkphantom1337.koi.kh.entitys.mails.Mail;
 import ua.darkphantom1337.koi.kh.entitys.mails.MailStatus;
+import ua.darkphantom1337.koi.kh.entitys.mails.SendType;
 import ua.darkphantom1337.koi.kh.handlers.callback.admin.AdminCallbackHandler;
 import ua.darkphantom1337.koi.kh.qr.DarkQRWriter;
 
@@ -91,23 +92,33 @@ public class AdminHandler {
         /* Меню рассылок */
         if (text.equals("Создать рассылку")) {
             user.setUserAction("admin_wait_new_mail");
-            bot.sendMsgToUser(user.getTID(), "Отправьте мне ТЕКСТ или же ФОТО/ФАЙЛ или же ФОТО/ФАЙЛ С ПОДПИСЬЮ для создания рассылки, после этого можно будет её настроить \uD83D\uDE09", "ADMIN/BackToMainMenu");
+            bot.sendMsgToUser(user.getTID(), "Отправьте мне ТЕКСТ или же ФОТО/ФАЙЛ или же ФОТО/ФАЙЛ С ПОДПИСЬЮ для создания рассылки, после этого можно будет её настроить " +
+                            "\nℹ️Поддерживаемые типы файлов:"
+                            + "\n\uD83D\uDC49 Word - .doc .docx"
+                            + "\n\uD83D\uDC49 Excel - .xls .xlsx"
+                            + "\n\uD83D\uDC49 PowerPoint - .ppt .pptx"
+                            + "\n\uD83D\uDC49 Text - .txt "
+                            + "\n\uD83D\uDC49 Video - все форматы (Конвертация в .mp4 при отправке)"
+                            + "\n\uD83D\uDC49 GIF - .gif (Конвертация в видео при отправке в нек. случаях)"
+                            + "\n\uD83D\uDC49 PDF - .pdf "
+                            + "\n\uD83D\uDC49 Image - все форматы (Конвертация в .png при отправке) "
+                    , "ADMIN/BackToMainMenu");
             return true;
         }
         if (text.equals("Запланированные")) {
             List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.READY_TO_RUN);
-            if (mailsID.isEmpty()){
+            if (mailsID.isEmpty()) {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок ожидающих выполнения на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
             } else {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
-                for (Long mailID : mailsID){
+                for (Long mailID : mailsID) {
                     try {
                         Mail mail = new Mail(mailID);
                         user.sendMessage("ℹ️ Рассылка №" + mailID
                                 + "\nБудет выполнена: " + mail.getSendDate()
                                 + "\nСтатус: " + mail.getMailStatus()
-                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/Current/"+ mailID);
-                    } catch (Exception e){
+                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/Current/" + mailID);
+                    } catch (Exception e) {
 
                     }
                 }
@@ -116,18 +127,49 @@ public class AdminHandler {
         }
         if (text.equals("Не завершённые")) {
             List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.CREATING);
-            if (mailsID.isEmpty()){
+            if (mailsID.isEmpty()) {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок НА ЭТАПЕ СОЗДАНИЯ/ЗАПОЛНЕНИЯ на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
             } else {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
-                for (Long mailID : mailsID){
+                for (Long mailID : mailsID) {
                     try {
                         Mail mail = new Mail(mailID);
                         user.sendMessage("ℹ️ Рассылка №" + mailID
                                 + "\nБудет выполнена: " + mail.getSendDate()
                                 + "\nСтатус: " + mail.getMailStatus()
                                 + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/Current/" + mailID);
-                    } catch (Exception e){
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            return true;
+        }
+        if (text.equals("Завершённые")) {
+            List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.COMPLETED);
+            List<Long> filteredMails = new ArrayList<>();
+            for (Long mailID : mailsID) {
+                try {
+                    Mail mail = new Mail((mailID));
+                    Date now = new Date(), sendDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(mail.getSendDate());
+                    int seconds = (int) ((now.getTime() - sendDate.getTime()) / 1000);
+                    if (seconds > 0 && seconds <= 172800){
+                        filteredMails.add(mailID);
+                    }
+                } catch (Exception e){}
+            }
+            if (filteredMails.isEmpty()) {
+                bot.sendMsgToUser(user.getTID(), "ℹ️Завёршенных рассылок которым НЕ БОЛЬШЕ 2х дней нету! \uD83D\uDE0E", "ADMIN/BackToMainMenu");
+            } else {
+                bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки выполненные, которым НЕ БОЛЬШЕ 2х дней \uD83D\uDC47", "ADMIN/BackToMainMenu");
+                for (Long mailID : mailsID) {
+                    try {
+                        Mail mail = new Mail(mailID);
+                        user.sendMessage("ℹ️ Рассылка №" + mailID
+                                + "\nБыла выполнена: " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss - EEE").format(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(mail.getSendDate()))
+                                + "\nСтатус: " + mail.getMailStatus()
+                                + "\nТип контента: " + mail.getContentType()
+                                + "\nПолучатели: " + (mail.getAllRecipientsID().size() == 0 ? "ВСЕ" : mail.getAllRecipientsID().size()), "ADMIN/Mail/Completed/" + mailID);
+                    } catch (Exception e) {
                     }
                 }
             }
@@ -135,18 +177,18 @@ public class AdminHandler {
         }
         if (text.equals("Ожидают старта")) {
             List<Long> mailsID = new Mail(0).getMailingsIDWhere(MailStatus.WAITING_TO_START);
-            if (mailsID.isEmpty()){
+            if (mailsID.isEmpty()) {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Рассылок ожидающих РАЗРЕШЕНИЯ НА ВЫПОЛНЕНИЕ на данный момент нету \uD83D\uDE0E", "ADMIN/BackToMainMenu");
             } else {
                 bot.sendMsgToUser(user.getTID(), "ℹ️Ниже представлены рассылки ожидающие выполнения \uD83D\uDC47", "ADMIN/BackToMainMenu");
-                for (Long mailID : mailsID){
+                for (Long mailID : mailsID) {
                     try {
                         Mail mail = new Mail(mailID);
                         user.sendMessage("ℹ️ Рассылка №" + mailID
                                 + "\nБудет выполнена: " + mail.getSendDate()
                                 + "\nСтатус: " + mail.getMailStatus()
-                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/WaitStarts/"+ mailID);
-                    } catch (Exception e){
+                                + "\nТип контента: " + mail.getContentType(), "ADMIN/Mail/WaitStarts/" + mailID);
+                    } catch (Exception e) {
                     }
                 }
             }
@@ -258,6 +300,15 @@ public class AdminHandler {
                         + "\nОписание: " + DataBase.getPerFields(personalID, "description"), "ADMIN/Personal/MainMenu");
             return true;
         }
+        if (text.equals("ДР")) {
+            bot.sendMsgToUser(user.getTID(), "ℹ️Команды для управления 'BirthdaySystem'"
+                    + "\n-> !BIRTHDAY_SET_TEXT - установка текста поздравления"
+                    + "\n-> !BIRTHDAY_SET_IMAGE - установка картинки поздравления"
+                    + "\n-> !BIRTHDAY_SHOW - посмотреть текущее поздравление"
+                    + "\n-> !SET_BIRTHDAY_DATE/ТелефонКлиента/День:Месяц:год - Установка даты рождения клиента"
+                    + "\n-> Пример установки даты рождения:!SET_BIRTHDAY_DATE/0666905956/01:12:2002", "ADMIN/MainMenu");
+            return true;
+        }
         if ((text.toLowerCase().startsWith("!сменить статус")) && text.contains("/")) {
             return handleChangeStatusCommand(text, user_id);
         }
@@ -274,6 +325,7 @@ public class AdminHandler {
             if (handleNewQRCommand(user, text)) return true;
             if (handleChangeQRCommand(user, text)) return true;
             if (handleDeleteQRCommand(user, text)) return true;
+            if (handleBirthdayStartFill(user, text)) return true;
         }
         return false;
     }
@@ -316,8 +368,32 @@ public class AdminHandler {
             user.sendMessage("ℹ️Пришлите мне картинку поздравления пользователей бота KOI-KH \uD83E\uDD2A");
             return true;
         }
+        if (text.startsWith("!BIRTHDAY_SHOW")) {
+            try {
+                Mail mail = new Mail(0L);
+                ContentType contentType = mail.getContentType();
+                File photo = null;
+                SendPhoto sendPhoto = null;
+                if (contentType.equals(ContentType.TEXT_AND_IMAGE)) {
+                    Bot.bot.saveDocument("mail_" + mail.getMailID() + "_image.png", Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
+                    photo = new File("mail_" + mail.getMailID() + "_image.png");
+                    sendPhoto = new SendPhoto().setNewPhoto(photo);
+                    sendPhoto.setCaption(mail.getMailMessage());
+                }
+                if (contentType.equals(ContentType.TEXT)) {
+                    user.sendMessage(mail.getMailMessage());
+                } else if (contentType.equals(ContentType.TEXT_AND_IMAGE)) {
+                    sendPhoto.setChatId(user.getTID());
+                    Bot.bot.sendPhoto(sendPhoto);
+                }
+                photo.delete();
+            } catch (Exception e) {
+                user.sendMessage("Ошибка при отправке поздравления Вам.");
+            }
+            return true;
+        }
         if (text.startsWith("!SET_BIRTHDAY_DATE")) { // !SET_BIRTHDAY_DATE/USERPHONE/dd:MM:yyyy
-            if (!text.contains("/") || text.split("/").length != 3){
+            if (!text.contains("/") || text.split("/").length != 3) {
                 user.sendMessage("ℹ️Для того чтобы установить дату рождения пользователю используйте команду: !SET_BIRTHDAY_DATE/USERPHONE/dd:MM:yyyy \uD83E\uDD2A");
                 return true;
             }
@@ -332,11 +408,11 @@ public class AdminHandler {
                     break;
                 }
             }
-            if (!valid_phone){
+            if (!valid_phone) {
                 user.sendMessage("ℹ️Пользователя с номером телефона '" + spl[1] + "' не найдено в базе бота KOI-KH \uD83E\uDD2A");
                 return true;
             }
-            user.setBirthday(spl[2].replace(":","/"));
+            user.setBirthday(spl[2].replace(":", "/"));
             user.setUserAction("main");
             user.sendMessage("ℹ️Пользователю с номером телефона '" + spl[1] + "' установлен день рожднение! \uD83E\uDD2A");
             return true;
@@ -696,20 +772,54 @@ public class AdminHandler {
 
     private boolean handleNotPreparedMessage(User user, String text, Integer message_id) {
         Long user_id = user.getUID();
+        if (user.getUserAction().equals("admin_wait_mail_ch_tx")){
+            user.setUserAction("main");
+            if (!admins_current_mail.containsKey(user.getUID())) {
+                user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
+                return true;
+            }
+            Mail mail = new Mail(admins_current_mail.get(user.getUID()));
+            mail.setMailMessage(text);
+            ContentType type = mail.getContentType();
+            if (type.equals(ContentType.IMAGE))
+            mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            if (type.equals(ContentType.FILE))
+                mail.setContentType(ContentType.TEXT_AND_FILE);
+            mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            if (type.equals(ContentType.GIF))
+                mail.setContentType(ContentType.TEXT_AND_GIF);
+            mail.setContentType(ContentType.TEXT_AND_IMAGE);
+            if (type.equals(ContentType.VIDEO))
+                mail.setContentType(ContentType.TEXT_AND_VIDEO);
+            user.sendMessage("\uD83D\uDC49 Рассылка №" + mail.getMailID() + " изменена! Дата отправки: " + mail.getSendDate()
+                    + "\n\uD83D\uDC49 Нажмите 'Запустить' чтобы сохранить и разрешить выполнение рассылки [Получатели: ВСЕ]." +
+                    "\n\uD83D\uDC49 Нажмите 'Указать параметр' чтобы выбрать доп. параметр для сортировки получателей/ИЗМЕНЕНИЯ РАССЫЛКИ.", "ADMIN/Mail/StartOrSetParameters/" + mail.getMailID());
+            return true;
+        }
+        if (user.getUserAction().equals("admin_wait_birthday_text")) {
+            user.setUserAction("main");
+            new Mail(0).setMailMessage(text);
+            new Mail(0).setContentType(ContentType.TEXT);
+            new Mail(0).setMailStatus(MailStatus.WAITING_TO_START);
+            new Mail(0).setSendType(SendType.PLANNED);
+
+            user.sendMessage("Поздравительный текст установлен", "ADMIN/Main");
+            return true;
+        }
         if (user.getUserAction().equals("admin_mail_wait_date")) {
-            if (!admins_current_mail.containsKey(user.getUID())){
+            if (!admins_current_mail.containsKey(user.getUID())) {
                 user.setUserAction("main");
                 user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
                 return true;
             }
             Date date = null;
-            try{
+            try {
                 date = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(text);
-            } catch (Exception e){
+            } catch (Exception e) {
                 user.sendMessage("Неверный формат даты. Введите дату в следующем формате: dd/MM/yyyy HH:mm:ss.", "ADMIN/BackToMain");
                 return true;
             }
-            if (date != null){
+            if (date != null) {
                 user.setUserAction("main");
                 Mail mail = new Mail(admins_current_mail.get(user.getUID()));
                 mail.setSendDate(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(date));
@@ -719,7 +829,7 @@ public class AdminHandler {
             } else {
                 user.sendMessage("Неверный формат даты. Введите дату в следующем формате: dd/MM/yyyy HH:mm:ss.", "ADMIN/BackToMain");
             }
-           return true;
+            return true;
         }
         if (user.getUserAction().equals("admin_wait_new_mail")) {
             user.setUserAction("main");
@@ -757,11 +867,37 @@ public class AdminHandler {
             }
             return true;
         }
+        if (user.getUserAction().equals("admin_wait_mail_fil_phone")){
+            if (admins_current_mail.containsKey(user.getUID())) {
+                List<Long> filtered_users = new ArrayList<>();
+                for (Long uid : DataBase.getAllUserId()) {
+                        if (new User(uid,false).getUserPhone().toLowerCase().contains(text.toLowerCase())) {
+                            filtered_users.add(uid);
+                            break;
+                        }
+                }
+                if (filtered_users.isEmpty()) {
+                    user.sendMessage("К сожалению пользователей у которых телефон содержит слово(а) '" + text + "' нету в базе KOI-KH." +
+                            "\n\uD83D\uDC49 Повторите попытку, напишите номер телефона либо вернитесь в главное меню.", "ADMIN/BackToMainMenu");
+                    return true;
+                }
+                user.setUserAction("main");
+                Mail mail = new Mail(admins_current_mail.get(user.getUID()));
+                mail.setAllRecipientsID(filtered_users);
+                user.sendMessage("Рассылка №" + mail.getMailID() + " заполнена и готова к старту. "
+                        + "\n\uD83D\uDC49 Нажмите 'Запустить' чтобы сохранить и разрешить выполнение рассылки [Получатели: " + filtered_users.size() + " пользователей]." +
+                        "\n\uD83D\uDC49 Нажмите 'Указать параметр' чтобы выбрать доп. параметр для сортировки получателей.", "ADMIN/Mail/StartOrSetParameters/" + mail.getMailID());
+                return true;
+            } else {
+                user.setUserAction("main");
+                user.sendMessage("К сожалению данные о редактируемой/создаваемой рассылке больше недоступны. Повторите попытку.", "ADMIN/Mail/MainMenu");
+            }
+        }
         if (user.getUserAction().equals("admin_wait_mail_fil_cartridge")) {
             if (admins_current_mail.containsKey(user.getUID())) {
                 List<Long> filtered_users = new ArrayList<>();
-                for (Long uid : DataBase.getAllUserId()){
-                    for (String model : new User(uid,false).getModels()){
+                for (Long uid : DataBase.getAllUserId()) {
+                    for (String model : new User(uid, false).getModels()) {
                         if (model.toLowerCase().contains(text.toLowerCase())) {
                             filtered_users.add(uid);
                             break;
@@ -975,12 +1111,16 @@ public class AdminHandler {
                 }
             }
         }
+        bot.info("лол тут");
         if (AdminCallbackHandler.handleAdminSetVacation(user, data, callid)) return true;
         if (AdminCallbackHandler.handleAdminMailSetWhen(user, data, msgid, callid)) return true;
         if (AdminCallbackHandler.handleAdminMailStart(user, data, msgid, callid)) return true;
         if (AdminCallbackHandler.handleAdminMailSelectParameters(user, data, msgid, callid)) return true;
         if (AdminCallbackHandler.handleAdminMailSetParameters(user, data, msgid, callid)) return true;
         if (AdminCallbackHandler.handleAdminMailDelete(user, data, msgid, callid)) return true;
+        bot.info("лол тут2");
+        bot.info("лол тут3");
+
         return false;
     }
 

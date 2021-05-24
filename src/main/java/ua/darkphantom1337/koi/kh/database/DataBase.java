@@ -624,7 +624,6 @@ public class DataBase {
             while (e.next())
                 allUserID.add(e.getLong("id"));
             e.close();
-            allUserID.forEach(id -> System.out.println(id));
             return allUserID;
         } catch (Exception e) {
             e.printStackTrace();
