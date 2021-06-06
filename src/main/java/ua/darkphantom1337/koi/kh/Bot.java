@@ -20,6 +20,7 @@ import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.buttons.MasterChannelButtons;
 import ua.darkphantom1337.koi.kh.buttons.ReplyButtons;
 import ua.darkphantom1337.koi.kh.database.DataBase;
+import ua.darkphantom1337.koi.kh.database.SqlServer;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.handlers.*;
@@ -47,7 +48,7 @@ public class Bot extends TelegramLongPollingBot {
             user_tema = new HashMap<Long, String>(),
             user_model = new HashMap<Long, String>();
     public static UserMessageHandler umh;
-    public static HashMap<Long, Integer> user_wait_rate_zn = new HashMap<Long, Integer>(), user_wait_rate_zn_тsg = new HashMap<Long, Integer>(), news_id_d = new HashMap<Long, Integer>(), z_kolvo = new HashMap<Long, Integer>();
+    public static HashMap<Long, Integer> user_wait_rate_zn = new HashMap<Long, Integer>(), user_wait_rate_zn_msg = new HashMap<Long, Integer>(), news_id_d = new HashMap<Long, Integer>(), z_kolvo = new HashMap<Long, Integer>();
     public static HashMap<Long, List<String>> user_zayavki = new HashMap<Long, List<String>>();
     public static HashMap<Long, File> user_file = new HashMap<Long, File>();
 
@@ -139,21 +140,18 @@ public class Bot extends TelegramLongPollingBot {
         }
         new MailingsThread().start();
         new BirthdayThread().start();
-
-
-
-
-      /*  Connection conn = null;
+       // Connection conn = null;
         String dbName = "master";
         String serverip="109.86.218.79";
         String serverport="1433";
         String url = "jdbc:sqlserver://"+serverip+"\\SQLEXPRESS:"+serverport+";databaseName="+dbName+"";
-        Statement stmt = null;
-        ResultSet result = null;
+      /*  Statement stmt = null;
+        ResultSet result = null;*/
         String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
         String databaseUserName = "sa";
         String databasePassword = "koi0385";
-        try {
+        new SqlServer(serverip, dbName, "vlad", "2@RoiJx#2erbcJb,Yc%7E#oC9rNdxh");
+        /*try {
             Class.forName(driver).newInstance();
             conn = DriverManager.getConnection(url, databaseUserName, databasePassword);
             Bot.bot.info("KOI KAFE SUCCES");
@@ -646,6 +644,10 @@ public class Bot extends TelegramLongPollingBot {
                 new Corporation(DataBase.getCorporationID(id)).addOrderID((long) znum);
             OrderLocations.addAllCurrentOrderID((long) znum);
             DataBase.addZForUser(Math.toIntExact(id), znum);
+            if (user.getUID() != 21L)
+                SqlServer.insertToDataZakaz(9971,order, user);
+            else
+                SqlServer.insertToDataZakaz(5948,order, user);
             if (z_kolvo.containsKey(id) && z_kolvo.get(id) <= 3) {
                 z_kolvo.put(id, (z_kolvo.get(id) + 1));
             } else {
@@ -1123,7 +1125,7 @@ public class Bot extends TelegramLongPollingBot {
             else
                 s = id + "!" + msgi + "," + id + "!" + msgid;
             DataBase.setZFields(zn, "msg_ids", s);
-            user_wait_rate_zn_тsg.put(id, msgi);
+            user_wait_rate_zn_msg.put(id, msgi);
         }
         sendToArchiveTask(zn, rate, id, false);
     }
@@ -1167,7 +1169,7 @@ public class Bot extends TelegramLongPollingBot {
                         }
                     }
                     if (type == false) {
-                        user_wait_rate_zn_тsg.remove(id);
+                        user_wait_rate_zn_msg.remove(id);
                         user_wait_rate_zn.remove(id);
                         user_wait_rate_comm.remove(id);
                     }

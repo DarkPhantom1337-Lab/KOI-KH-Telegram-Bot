@@ -335,8 +335,8 @@ public class UserMessageHandler {
                 @Override
                 public void run() {
                     bot.deleteMsg(userID, msgi);
-                    bot.deleteMsg(userID, bot.user_wait_rate_zn_тsg.get(userID));
-                    bot.user_wait_rate_zn_тsg.remove(userID);
+                    bot.deleteMsg(userID, bot.user_wait_rate_zn_msg.get(userID));
+                    bot.user_wait_rate_zn_msg.remove(userID);
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
@@ -354,7 +354,7 @@ public class UserMessageHandler {
 
                                     }
                                 }
-                                bot.user_wait_rate_zn_тsg.remove(userID);
+                                bot.user_wait_rate_zn_msg.remove(userID);
                                 bot.user_wait_rate_comm.remove(userID);
                                 DataBase.saveZToArch(bot.user_wait_rate_zn.get(userID));
                                 DataBase.delete(bot.user_wait_rate_zn.get(userID));
@@ -465,7 +465,7 @@ public class UserMessageHandler {
                 user.setUserCompanyName(spl[0]);
                 user.setName(spl[1]);
                 user.setPhone(spl[2]);
-                bot.sendMsgToUser(userID, "\uD83D\uDE0E\uD83D\uDC4C Данные успешно изменены!");
+                bot.sendMsgToUser(user.getTID(), "\uD83D\uDE0E\uD83D\uDC4C Данные успешно изменены!");
                 if (bot.user_tema.get(userID).equals("Заправка картриджа"))
                     handleUserNewOrder(user, true);
                 else handleUserNewOrder(user, false);
