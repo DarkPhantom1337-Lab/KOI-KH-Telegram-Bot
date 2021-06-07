@@ -1,13 +1,13 @@
 package ua.darkphantom1337.koi.kh.handlers;
 
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendAudio;
-import org.telegram.telegrambots.api.methods.send.SendDocument;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.methods.send.SendVideo;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.*;
 import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
@@ -377,14 +377,14 @@ public class AdminHandler {
                 if (contentType.equals(ContentType.TEXT_AND_IMAGE)) {
                     Bot.bot.saveDocument("mail_" + mail.getMailID() + "_image.png", Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
                     photo = new File("mail_" + mail.getMailID() + "_image.png");
-                    sendPhoto = new SendPhoto().setNewPhoto(photo);
+                    sendPhoto = new SendPhoto().setPhoto(photo);
                     sendPhoto.setCaption(mail.getMailMessage());
                 }
                 if (contentType.equals(ContentType.TEXT)) {
                     user.sendMessage(mail.getMailMessage());
                 } else if (contentType.equals(ContentType.TEXT_AND_IMAGE)) {
                     sendPhoto.setChatId(user.getTID());
-                    Bot.bot.sendPhoto(sendPhoto);
+                    Bot.bot.execute(sendPhoto);
                 }
                 photo.delete();
             } catch (Exception e) {
@@ -477,7 +477,7 @@ public class AdminHandler {
                         Cartridge cartridge = new Cartridge(DataBase.getNextCartridgeID());
                         cartridge.create(data[1], data[2], data[3], new ArrayList<Long>(Arrays.asList(ownerid)));
                         new User(ownerid).addCartridgeID(cartridge.getID());
-                        bot.sendDocument(new SendDocument().setNewDocument(DarkQRWriter.createQRCode(cartridge.getID()))
+                        bot.execute(new SendDocument().setDocument(DarkQRWriter.createQRCode(cartridge.getID()))
                                 .setChatId(user_id).setReplyToMessageId(bot.sendMsgToUser(user.getTID(), "Картридж №" + cartridge.getID() + " успешно создан. ID Картриджа: " + cartridge.getID() + "\n" + "QR-код для картриджа №" + cartridge.getID() + " (" + cartridge.getModel() + ")", "ADMIN/QR/MainMenu")));
                         return true;
                     } catch (Exception e) {
@@ -1020,7 +1020,7 @@ public class AdminHandler {
         return false;
     }
 
-    public boolean handleCallBack(User user, Long chatid, String data, Integer msgid, String callid) {
+    public boolean handleCallBack(User user, Long chatid, String data, Integer msgid, String callid) throws TelegramApiException {
         Long fromid = user.getUID();
         if (data.startsWith("#ADMIN")) {
             String[] pdata = data.split("/");
@@ -1107,7 +1107,7 @@ public class AdminHandler {
                     bot.sendMsgToUser(user.getTID(), "Теперь человек " + DataBase.getUserStr("name", personalID) + " является персоналом бота KOI-KH \uD83E\uDD11", "ADMIN/Personal/MainMenu");
                     return true;
                 } else {
-                    bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные не актуальны, повторите процедуру повторно."));
+                    bot.execute(new AnswerCallbackQuery().setCallbackQueryId(callid).setText("Данные не актуальны, повторите процедуру повторно."));
                 }
             }
         }
@@ -1145,7 +1145,7 @@ public class AdminHandler {
                 int nv = bot.pi(DataBase.getUFileds(4, "val"));
                 try {
                     if (!adm_where.get(fromid).equals("VIBER")) {
-                        Bot.saveDocument(fname, bot.getFile(new GetFile().setFileId(fid)).getFileUrl(bot.getBotToken()));
+                        Bot.saveDocument(fname, bot.execute(new GetFile().setFileId(fid)).getFileUrl(bot.getBotToken()));
                     }
                     //Host.uploadToHost("vintik17@bk.ru", "Vvlad2002", fname);
                 } catch (Exception ex) {
@@ -1153,7 +1153,7 @@ public class AdminHandler {
                 }
                 if (adm_where.get(fromid).equals("VIBER")) {
                     try {
-                        DataBase.inserToNewsLetter(nv, bot.getFile(new GetFile().setFileId(fid)).getFileUrl(bot.getBotToken()), msg.getCaption(), "", "", "START");
+                        DataBase.inserToNewsLetter(nv, bot.execute(new GetFile().setFileId(fid)).getFileUrl(bot.getBotToken()), msg.getCaption(), "", "", "START");
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
@@ -1235,24 +1235,24 @@ public class AdminHandler {
     public void send(String ftype, File f, Integer i, String tex) {
         try {
             if (ftype.equals(".jpeg") || ftype.equals(".png")) {
-                SendPhoto ss = new SendPhoto().setNewPhoto(f).setChatId((long) i);
-                bot.sendPhoto(ss);
+                SendPhoto ss = new SendPhoto().setPhoto(f).setChatId((long) i);
+                bot.execute(ss);
                 bot.sendMsgToUser((long) i, tex);
                 System.out.println(bot.prefix() + "Успешно отправлена фотография и текст пользователю: " + i + "(" + DataBase.getUserName(Math.toIntExact(i)) + ")");
             } else if (ftype.contains(".doc") || ftype.equals(".pdf")
                     || ftype.equals(".txt") || ftype.equals(".xls") || ftype.equals(".ppt") || ftype.contains(".docx") || ftype.contains(".xlsx") || ftype.contains(".pptx")) {
-                SendDocument ss = new SendDocument().setNewDocument(f).setChatId((long) i);
-                bot.sendDocument(ss);
+                SendDocument ss = new SendDocument().setDocument(f).setChatId((long) i);
+                bot.execute(ss);
                 bot.sendMsgToUser((long) i, tex);
                 System.out.println(bot.prefix() + "Успешно отправлен документ и текст пользователю: " + i + "(" + DataBase.getUserName(Math.toIntExact(i)) + ")");
             } else if (ftype.contains(".mp4") || ftype.equals(".gif")) {
-                SendVideo ss = new SendVideo().setNewVideo(f).setChatId((long) i);
-                bot.sendVideo(ss);
+                SendVideo ss = new SendVideo().setVideo(f).setChatId((long) i);
+                bot.execute(ss);
                 bot.sendMsgToUser((long) i, tex);
                 System.out.println(bot.prefix() + "Успешно отправлен видос и текст пользователю: " + i + "(" + DataBase.getUserName(Math.toIntExact(i)) + ")");
             } else if (ftype.contains(".mp3") || ftype.equals(".ogg") || ftype.equals(".mp2")) {
-                SendAudio ss = new SendAudio().setNewAudio(f).setChatId((long) i);
-                bot.sendAudio(ss);
+                SendAudio ss = new SendAudio().setAudio(f).setChatId((long) i);
+                bot.execute(ss);
                 bot.sendMsgToUser((long) i, tex);
                 System.out.println(bot.prefix() + "Успешно отправлен голос и текст пользователю: " + i + "(" + DataBase.getUserName(Math.toIntExact(i)) + ")");
             }

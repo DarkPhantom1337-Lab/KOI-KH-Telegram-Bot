@@ -1,7 +1,7 @@
 package ua.darkphantom1337.koi.kh.handlers;
 
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import ua.darkphantom1337.koi.kh.*;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.database.DataBase;
@@ -611,7 +611,7 @@ public class PersonalCallbackHandler {
                     cartridge.create(subOrder.getModel(), subOrder.getModel(), order.getAddress(), new ArrayList<Long>(Arrays.asList(order.getUID())));
                     File file = DarkQRWriter.createQRCode(cartridge.getID());
                     new User(order.getUID(), true).addCartridgeID(cartridge.getID());
-                    bot.sendDocument(new SendDocument().setNewDocument(file)
+                    bot.execute(new SendDocument().setDocument(file)
                             .setChatId(user.getTID()).setCaption("QR код для картриджа №" + cartridge.getID() + " успешно создан."
                                     + "\nКлиент: " + new User(order.getUID()).getUserPhone()
                                     + "\nМодель картриджа: " + cartridge.getModel()

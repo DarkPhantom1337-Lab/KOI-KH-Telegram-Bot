@@ -1,9 +1,9 @@
 package ua.darkphantom1337.koi.kh;
 
-import org.telegram.telegrambots.api.methods.ActionType;
-import org.telegram.telegrambots.api.methods.send.SendChatAction;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.ActionType;
+import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.entitys.User;
 
 import java.text.SimpleDateFormat;
@@ -127,7 +127,7 @@ public class Utils {
         return "UNDEFINED";
     }
 
-    public void changeBotAction(Long chatID,ActionType actionType){
+    public void changeBotAction(Long chatID, ActionType actionType){
         try {
             Bot.bot.execute(new SendChatAction().setChatId(chatID).setAction(actionType));
         } catch (TelegramApiException telegramApiException) {

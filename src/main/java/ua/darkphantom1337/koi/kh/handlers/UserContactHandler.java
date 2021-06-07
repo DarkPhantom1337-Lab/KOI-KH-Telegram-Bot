@@ -1,6 +1,6 @@
 package ua.darkphantom1337.koi.kh.handlers;
 
-import org.telegram.telegrambots.api.objects.Contact;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.entitys.User;
 

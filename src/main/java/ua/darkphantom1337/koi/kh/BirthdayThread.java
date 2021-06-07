@@ -1,8 +1,8 @@
 package ua.darkphantom1337.koi.kh;
 
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.entitys.User;
 import ua.darkphantom1337.koi.kh.entitys.mails.ContentType;
@@ -45,13 +45,13 @@ public class BirthdayThread extends Thread {
                     if (contentType.equals(ContentType.TEXT_AND_IMAGE)){
                         Bot.bot.saveDocument("mail_" + mail.getMailID() + "_image.png", Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
                         photo = new File("mail_" + mail.getMailID() + "_image.png");
-                        sendPhoto = new SendPhoto().setNewPhoto(photo);
+                        sendPhoto = new SendPhoto().setPhoto(photo);
                         sendPhoto.setCaption(mail.getMailMessage());
                     }
                     if (contentType.equals(ContentType.TEXT_AND_VIDEO)){
                         Bot.bot.saveDocument("mail_" + mail.getMailID() + "_video.mp4", Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
                         photo = new File("mail_" + mail.getMailID() + "_video.mp4");
-                        sendVideo = new SendVideo().setNewVideo(photo);
+                        sendVideo = new SendVideo().setVideo(photo);
                         sendVideo.setCaption(mail.getMailMessage());
                     }
                     int br = 0;
@@ -66,12 +66,12 @@ public class BirthdayThread extends Thread {
                                     continue;
                                 } else if (contentType.equals(ContentType.TEXT_AND_IMAGE)){
                                     sendPhoto.setChatId(user.getTID());
-                                    Bot.bot.sendPhoto(sendPhoto);
+                                    Bot.bot.execute(sendPhoto);
                                     br++;
                                     continue;
                                 } else if (contentType.equals(ContentType.TEXT_AND_VIDEO)){
                                     sendVideo.setChatId(user.getTID());
-                                    Bot.bot.sendVideo(sendVideo);
+                                    Bot.bot.execute(sendVideo);
                                     br++;
                                     continue;
                                 }

@@ -1,21 +1,22 @@
 package ua.darkphantom1337.koi.kh;
 
 import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.methods.ActionType;
-import org.telegram.telegrambots.api.methods.send.*;
-import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageReplyMarkup;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.File;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.ActionType;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.buttons.MasterChannelButtons;
 import ua.darkphantom1337.koi.kh.buttons.ReplyButtons;
@@ -229,7 +230,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public void editMsg(Long chatid, Integer msgid, String text) {//Редактирование сообщения
         try {
-            this.editMessageText(new EditMessageText().setChatId(chatid)
+            this.execute(new EditMessageText().setChatId(chatid)
                     .setMessageId(msgid)
                     .setText(text));
         } catch (Exception e) {
@@ -243,7 +244,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public void editMsg(Long chatid, Integer msgid, InlineKeyboardMarkup kb) {//Редактирование сообщения
         try {
-            this.editMessageReplyMarkup(new EditMessageReplyMarkup().setChatId(chatid)
+            this.execute(new EditMessageReplyMarkup().setChatId(chatid)
                     .setMessageId(msgid)
                     .setReplyMarkup(kb));
         } catch (Exception e) {
@@ -258,7 +259,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public void deleteMsg(Long chatid, Integer msgid) {//Удаление сообщения
         try {
-            this.deleteMessage(new DeleteMessage().setChatId(String.valueOf(chatid)).setMessageId(msgid));
+            this.execute(new DeleteMessage().setChatId(String.valueOf(chatid)).setMessageId(msgid));
         } catch (Exception e) {
             System.out.println(prefix() + "Message not delete. CID: " + chatid + " MsgID: " + msgid + " E: " + e.getLocalizedMessage());
             //e.printStackTrace();
@@ -320,6 +321,11 @@ public class Bot extends TelegramLongPollingBot {
 
     public int daysBetween(Date d1, Date d2) {
         return (int) ((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    @Override
+    public void onUpdatesReceived(List<Update> updates) {
+        super.onUpdatesReceived(updates);
     }
 
     @Override //Имя бота
@@ -406,7 +412,7 @@ public class Bot extends TelegramLongPollingBot {
         order.addStatuses(bot.u.getDate("dd/MM/YY HH:mm:ss") + " " + smallstatus);
         if (notify) {
             order.setStatusMsgID(sendMsgToUser(user.getTID(), current_statuses));
-            editMsg(user.getTID(), order.getStatusMsgID(), InlineButtons.getUpdateStatusButton(order.getOrderID()));
+            bot.editMsg(user.getTID(), order.getStatusMsgID(), InlineButtons.getUpdateStatusButton(order.getOrderID()));
         }
     }
 
@@ -731,7 +737,7 @@ public class Bot extends TelegramLongPollingBot {
         handleMenu(menu, s, user_id);
         Integer message_id = 0;
         try {
-            message_id = sendMessage(s).getMessageId();
+            message_id = bot.execute(s).getMessageId();
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1216,7 +1222,7 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage s = new SendMessage().setChatId(getZayavChannelID()).setText(text);
         s.setReplyMarkup(InlineButtons.getObrobotkaButton(nza));
         try {
-            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + sendMessage(s).getMessageId());
+            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + execute(s).getMessageId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1226,7 +1232,7 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage s = new SendMessage().setChatId(getZayavChannelID()).setText(text);
         s.setReplyMarkup(buttons);
         try {
-            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + sendMessage(s).getMessageId());
+            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + execute(s).getMessageId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1237,7 +1243,7 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage s = new SendMessage().setChatId("-1001283507373").setText(text);
         Integer msgid = 0;
         try {
-            msgid = sendMessage(s).getMessageId();
+            msgid = execute(s).getMessageId();
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1249,7 +1255,7 @@ public class Bot extends TelegramLongPollingBot {
             SendMessage s = new SendMessage().setChatId("-1001143163268").setText(bot.u.getDate("[dd/MM/yyyy hh:mm:ss] -> ") + text);
             Integer msgid = 0;
             try {
-                msgid = sendMessage(s).getMessageId();
+                msgid = execute(s).getMessageId();
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -1275,7 +1281,7 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage s = new SendMessage().setChatId(getZayavChannelID()).setText(text);
         s.setReplyMarkup(InlineButtons.getObrobotkaReklamButton(nza));
         try {
-            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + sendMessage(s).getMessageId());
+            DataBase.setZFields(Math.toIntExact(nza), "main_msg_id", "" + execute(s).getMessageId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1300,7 +1306,7 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage s = new SendMessage().setChatId(getZayavChannelID()).setText(text);
         s.setReplyMarkup(InlineButtons.getObrobotkaButton(z_id));
         try {
-            DataBase.setZFields(Math.toIntExact(z_id), "main_msg_id", "" + sendMessage(s).getMessageId());
+            DataBase.setZFields(Math.toIntExact(z_id), "main_msg_id", "" + execute(s).getMessageId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -1370,7 +1376,7 @@ public class Bot extends TelegramLongPollingBot {
             s.setReplyMarkup(bt);
         int msgid = 0;
         try {
-            msgid = sendMessage(s).getMessageId();
+            msgid = execute(s).getMessageId();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1425,7 +1431,7 @@ public class Bot extends TelegramLongPollingBot {
             SendMessage s = new SendMessage().setChatId(id).setText(text);
             s.setReplyMarkup(InlineButtons.getOcenkiButtons(nz));
             try {
-                sendMessage(s);
+                execute(s);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -1498,7 +1504,7 @@ public class Bot extends TelegramLongPollingBot {
                 , "contact");
     }
 
-    public void tryExecureMethod(org.telegram.telegrambots.api.methods.BotApiMethod method) {
+    public void tryExecureMethod(BotApiMethod method) {
         try {
             bot.execute(method);
         } catch (Exception e) {
@@ -1507,5 +1513,12 @@ public class Bot extends TelegramLongPollingBot {
 
     }
 
+    public void tryExecureMethod(AnswerCallbackQuery method) {
+        try {
+            bot.execute(method);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+    }
 }

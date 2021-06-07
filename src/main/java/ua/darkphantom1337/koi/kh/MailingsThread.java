@@ -1,10 +1,11 @@
 package ua.darkphantom1337.koi.kh;
 
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendDocument;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.methods.send.SendVideo;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.entitys.mails.Mail;
 import ua.darkphantom1337.koi.kh.entitys.User;
@@ -73,14 +74,14 @@ public class MailingsThread extends Thread {
         if (contentType.equals(ContentType.IMAGE) || contentType.equals(ContentType.TEXT_AND_IMAGE)) {
             Bot.bot.saveDocument("mail_" + mail.getMailID() + "_image.png", Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
             File photo = new File("mail_" + mail.getMailID() + "_image.png");
-            SendPhoto sendPhoto = new SendPhoto().setNewPhoto(photo);
+            SendPhoto sendPhoto = new SendPhoto().setPhoto(photo);
             if (contentType.equals(ContentType.TEXT_AND_IMAGE))
                 sendPhoto.setCaption(mail.getMailMessage());
             for (Long uid : recipients) {
                 try {
                     User user = new User(uid, false);
                     sendPhoto.setChatId(user.getTID());
-                    mail.addMessageID(user.getTID() + "-" +Bot.bot.sendPhoto(sendPhoto).getMessageId());
+                    mail.addMessageID(user.getTID() + "-" +Bot.bot.execute(sendPhoto).getMessageId());
                 } catch (Exception ignored) {
                 }
             }
@@ -92,14 +93,14 @@ public class MailingsThread extends Thread {
             String filename = "mail_" + mail.getMailID() + "_file" + FileType.getMimeType(mail.getFileType());
             Bot.bot.saveDocument(filename, Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
             File file = new File(filename);
-            SendDocument sendFile = new SendDocument().setNewDocument(file);
+            SendDocument sendFile = new SendDocument().setDocument(file);
             if (contentType.equals(ContentType.TEXT_AND_FILE))
                 sendFile.setCaption(mail.getMailMessage());
             for (Long uid : recipients) {
                 try {
                     User user = new User(uid, false);
                     sendFile.setChatId(user.getTID());
-                    mail.addMessageID(user.getTID() + "-" + Bot.bot.sendDocument(sendFile).getMessageId());
+                    mail.addMessageID(user.getTID() + "-" + Bot.bot.execute(sendFile).getMessageId());
                 } catch (Exception ignored) {
                 }
             }
@@ -111,14 +112,14 @@ public class MailingsThread extends Thread {
             String filename = "mail_" + mail.getMailID() + "_video" + FileType.getMimeType(mail.getFileType());
             Bot.bot.saveDocument(filename, Bot.bot.execute(new GetFile().setFileId(mail.getMailFileID())).getFileUrl(Bot.bot.getBotToken()));
             File file = new File(filename);
-            SendVideo sendVideo = new SendVideo().setNewVideo(file);
+            SendVideo sendVideo = new SendVideo().setVideo(file);
             if (contentType.equals(ContentType.TEXT_AND_VIDEO))
                 sendVideo.setCaption(mail.getMailMessage());
             for (Long uid : recipients) {
                 try {
                     User user = new User(uid, false);
                     sendVideo.setChatId(user.getTID());
-                    mail.addMessageID(user.getTID() + "-" +Bot.bot.sendVideo(sendVideo).getMessageId());
+                    mail.addMessageID(user.getTID() + "-" +Bot.bot.execute(sendVideo).getMessageId());
                 } catch (Exception ignored) {
                 }
             }
