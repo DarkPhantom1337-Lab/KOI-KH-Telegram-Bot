@@ -722,7 +722,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return /*"1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8"*/"1267128345:AAHO8jKhdo3kJeX5MxPJKw25cO6KYdy_7ww";
+        return "1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8"/*"1267128345:AAHO8jKhdo3kJeX5MxPJKw25cO6KYdy_7ww"*/;
     }
 
     /*by DarkPhantom1337*/
