@@ -43,9 +43,13 @@ public class SqlServer {
                     + new SimpleDateFormat("HH:mm:ss").format(new Date())
                     + "] [INFO] -> Successful connect to DataBase!");
             statmt = conn.createStatement();
+           /* System.out.println(" Order KOD -> " + getKodStatus(new Order(453), new User(21L,false)));*/
+            //setKodStatus(new Order(453), new User(21L,false),57);
+           /* System.out.println(" Order KOD -> " + getKodStatus(new Order(453), new User(21L,false)));
+*/
             String pa,us;
             //insertToDataZakaz(9971,new Order(226), new User(1L, false));
-           /* ResultSet result = statmt.executeQuery("USE kafe;INSERT INTO data_zakaz (kod_firma,kod_vid,what_need,kod_status,prim,zakaz,date_vvod,date_do,kod_oper) " +
+            /* ResultSet result = statmt.executeQuery("USE kafe;INSERT INTO data_zakaz (kod_firma,kod_vid,what_need,kod_status,prim,zakaz,date_vvod,date_do,kod_oper) " +
                     "VALUES (5813,16,'картридж',13, 'DarkPhantom1337',0,'04.06.2021 15:33:46','04.06.2021 15:33:46',8)");
             while (result.next()) {
                 us=result.getString(1);
@@ -105,6 +109,36 @@ public class SqlServer {
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static Long getKodStatus(Order oder) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement("USE kafe;" +
+                "SELECT kod_status FROM data_zakaz WHERE what_need = ?;")) {
+            User user = new User(oder.getUID(),false);
+            preparedStatement.setString(1, oder.getOrderID() + " / " + user.getUserCompanyName() + " / "+oder.getModel());
+            ResultSet e = preparedStatement.executeQuery();
+            if (e.next()) {
+                Long name = e.getLong("kod_status");
+                e.close();
+                return name;
+            }
+            e.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0L;
+    }
+
+    public static Long setKodStatus(Order oder, Integer kod_status) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement("USE kafe;" +
+                "UPDATE data_zakaz SET kod_status = "+kod_status+" WHERE what_need = ?;")) {
+            User user = new User(oder.getUID(),false);
+            preparedStatement.setString(1, oder.getOrderID() + " / " + user.getUserCompanyName() + " / "+oder.getModel());
+            preparedStatement.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0L;
     }
 
     public static String getNexDayDate(){

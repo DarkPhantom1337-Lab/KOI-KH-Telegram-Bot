@@ -141,36 +141,8 @@ public class Bot extends TelegramLongPollingBot {
         }
         new MailingsThread().start();
         new BirthdayThread().start();
-       // Connection conn = null;
-        String dbName = "master";
-        String serverip="109.86.218.79";
-        String serverport="1433";
-        String url = "jdbc:sqlserver://"+serverip+"\\SQLEXPRESS:"+serverport+";databaseName="+dbName+"";
-      /*  Statement stmt = null;
-        ResultSet result = null;*/
-        String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-        String databaseUserName = "sa";
-        String databasePassword = "koi0385";
-        new SqlServer(serverip, dbName, "vlad", "2@RoiJx#2erbcJb,Yc%7E#oC9rNdxh");
-        /*try {
-            Class.forName(driver).newInstance();
-            conn = DriverManager.getConnection(url, databaseUserName, databasePassword);
-            Bot.bot.info("KOI KAFE SUCCES");
-            stmt = conn.createStatement();
-
-            result = null;
-            String pa,us;
-            result = stmt.executeQuery("select * ");
-
-            while (result.next()) {
-                us=result.getString(1);
-                System.out.println(us+"  ");
-            }
-
-            conn.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+        new SqlServer("109.86.218.79", "master", "vlad", "2@RoiJx#2erbcJb,Yc%7E#oC9rNdxh");
+        new StatusUpdateThread().start();
     }
 
     public static void registerBot() {
@@ -728,7 +700,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8"/*"1267128345:AAHO8jKhdo3kJeX5MxPJKw25cO6KYdy_7ww"*/;
+        return /*"1160732246:AAFhmLYo8-Ot5-LFoIkrHq5q91_SMSjpHk8"*/"1267128345:AAHO8jKhdo3kJeX5MxPJKw25cO6KYdy_7ww";
     }
 
     /*by DarkPhantom1337*/

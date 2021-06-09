@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import ua.darkphantom1337.koi.kh.*;
 import ua.darkphantom1337.koi.kh.buttons.InlineButtons;
 import ua.darkphantom1337.koi.kh.database.DataBase;
+import ua.darkphantom1337.koi.kh.database.SqlServer;
 import ua.darkphantom1337.koi.kh.database.TidToUidTable;
 import ua.darkphantom1337.koi.kh.entitys.*;
 import ua.darkphantom1337.koi.kh.qr.DarkQRWriter;
@@ -70,7 +71,7 @@ public class PersonalCallbackHandler {
              */
             //bot.editMsg(zChannelID, msgid, bot.getObrobotkaTrueButton(order.getOrderID().intValue()));
             bot.updateZStatus(order.getOrderID().intValue(), "Заявка принята.", "Заявка № " + order.getOrderID() + " принята менеджером! Ожидайте звонка...", true);
-
+            SqlServer.setKodStatus(order,55);
             CompletableFuture.runAsync(() -> {
                 if (order.getSource().equals("Viber")) {
                     try {
@@ -96,7 +97,7 @@ public class PersonalCallbackHandler {
                         int zn = order.getOrderID().intValue();
                         if (!new Order(zn).getStatus().contains("Завершена")) {
                             bot.deleteMsg(zChannelID, order.getMainMsgID());
-                            bot.sendCustomMessageToZChanel(zn, msgText + "\n« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", InlineButtons.getObrobotkaTrueButton(zn));
+                            bot.sendCustomMessageToZChanel(zn, Bot.bot.getMainOrderText(order, user) + "\n« ооо  - ЗАЯВКА ПРИНЯТА БОЛЕЕ 48 ЧАС  – ооо »", InlineButtons.getObrobotkaTrueButton(zn));
                             bot.info("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
                             bot.sendToLogChanel("Заявка #" + order.getOrderID() + " принята более чем 48 часов назад! Принимал: " + prinyal);
                         } else this.cancel();
@@ -246,6 +247,7 @@ public class PersonalCallbackHandler {
                         bot.deleteMsg(zChannelID, msgid);
                     }
                 }, 30000);
+                SqlServer.setKodStatus(order,19);
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Заявка отменена."));
             } else {
                 bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Отмена заявки уже подтверждена."));
@@ -305,8 +307,8 @@ public class PersonalCallbackHandler {
                             this.cancel();
                             return;
                         }
-                        bot.deleteMsg(order.getUID(), bot.last_vost_msg.get(order.getUID()));
-                        bot.last_vost_msg.put(order.getUID(), user.sendMessage(msgText, "yesno=" + order.getOrderID()));
+                        bot.deleteMsg(new TidToUidTable(order.getUID(), false).getTelegramID(), bot.last_vost_msg.get(order.getUID()));
+                        bot.last_vost_msg.put(order.getUID(), new User(new TidToUidTable(order.getUID(), false).getTelegramID()).sendMessage(msgText, "yesno=" + order.getOrderID()));
                     }
                 }, 60000 * 5, 60000 * 13);
             }
@@ -384,6 +386,7 @@ public class PersonalCallbackHandler {
             Order order = new Order(data.split("/")[1]);
             order.setStatus("Завершена");
             order.setAccurateStatus("Завершена");
+            SqlServer.setKodStatus(order,18);
             bot.editMsg(zChannelID, msgid, "Заявка №" + order.getOrderID() + " завершена принудительно! Завершил: " + DataBase.getPerFields(user.getUID(), "name"));
             bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Заявка №" + order.getOrderID() + " завершена!"));
             try {
@@ -467,6 +470,7 @@ public class PersonalCallbackHandler {
                 OrderLocations.removeOrderFromAll(order.getOrderID());
                 OrderLocations.addOrderInTheWay(order.getOrderID());
                 OrderLocations.addOrdersInCollection(order.getOrderID());
+                SqlServer.setKodStatus(order,56);
             }
             if (status.equals("заявка в работе") || status.equals("4")) {
                 bot.updateZStatus(order.getOrderID().intValue(), "Заявка в работе", "Ваша заявка в работе, пожалуйста ожидайте.", false);
@@ -508,6 +512,7 @@ public class PersonalCallbackHandler {
                 OrderLocations.addOrdersInWork(order.getOrderID());
                 for (Long subOrderID : order.getAllSubOrdersID())
                     DataBase.saveOrderInSheet(subOrderID, "STATUS");
+                SqlServer.setKodStatus(order,57);
                 return true;
             }
             if (status.equals("доставка в пути") || status.equals("5")) {
@@ -532,6 +537,7 @@ public class PersonalCallbackHandler {
                         SubOrder subOrder = new SubOrder(subOrderID);
                         subOrder.setStatus("Доставка");
                     }
+                    SqlServer.setKodStatus(order,59);
                 } else {
                     bot.tryExecureMethod(new AnswerCallbackQuery().setCallbackQueryId(cbqID).setText("Нельзя согласовать заявку не изменив статус на 'В работе'\nИзмените статус заявки на 'В работе'").setShowAlert(true));
                     return true;

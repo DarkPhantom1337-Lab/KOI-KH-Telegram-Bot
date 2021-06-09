@@ -6,6 +6,7 @@ import ua.darkphantom1337.koi.kh.Bot;
 import ua.darkphantom1337.koi.kh.database.DataBase;
 import ua.darkphantom1337.koi.kh.OrderLocations;
 import ua.darkphantom1337.koi.kh.UsersData;
+import ua.darkphantom1337.koi.kh.database.SqlServer;
 import ua.darkphantom1337.koi.kh.entitys.*;
 
 import java.util.ArrayList;
@@ -176,6 +177,7 @@ public class MasterChannelHandler {
                     if (is_all) {
                         new Order(new SubOrder(work.getOrderID()).getOrderID()).setAccurateStatus("Готова к выезду");
                         OrderLocations.addReadyToWay(new SubOrder(work.getOrderID()).getOrderID());
+                        SqlServer.setKodStatus( new Order(new SubOrder(work.getOrderID()).getOrderID()),58);
                     }
                     DataBase.saveOrderInSheet(work.getOrderID(), "WORK_END");
                     bot.editMsg(Long.parseLong(bot.getMasterChannelID()), msgid, bot.mcb.getMainZButtons(work));
@@ -201,6 +203,7 @@ public class MasterChannelHandler {
                         if (is_all) {
                             new Order(new SubOrder(work.getOrderID()).getOrderID()).setAccurateStatus("Готова к выезду");
                             OrderLocations.addReadyToWay(new SubOrder(work.getOrderID()).getOrderID());
+                            SqlServer.setKodStatus( new Order(new SubOrder(work.getOrderID()).getOrderID()),58);
                         }
                         DataBase.saveOrderInSheet(work.getOrderID(),"WORK_END");
                         bot.editMsg(Long.parseLong(bot.getMasterChannelID()), msgid, bot.mcb.getMainZButtons(work));
